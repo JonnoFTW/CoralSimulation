@@ -13,7 +13,7 @@ public class go {
 
     public static void main(String args[]) {
         JFrame window = new JFrame("Coral Simulation");
-        new Simulation(window, args);
+        new Simulation(window);
        // window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setLocationRelativeTo(null);
         window.pack();
