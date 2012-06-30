@@ -1,45 +1,48 @@
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JToggleButton;
 
 
 public class Simulation extends JPanel {
     
-    private SpeciesSetup specSetup;
+    public SpeciesSetup specSetup;
     private JLabel tick;
     private int iteration;
     private JPanel coralsPanel;
+    public SidePanel sp;
+    public CoralAnimation coralSim;
     
     public Simulation(JFrame window) {
        
         window.setJMenuBar(makeMenuBar());
         window.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                quitDialogue();
+             //   quitDialogue();
             }
         });
-        specSetup = new SpeciesSetup();
-        JPanel simPanel = new JPanel();
-        simPanel.setLayout(new BorderLayout());
-        simPanel.add(makeSidePanel(), BorderLayout.EAST);
         
+        JPanel simPanel = new JPanel();
+        
+        simPanel.setLayout(new BorderLayout());
+        sp = new SidePanel(this);
+        simPanel.add(sp, BorderLayout.EAST);
+        coralSim = new CoralAnimation(this);
+        simPanel.add(coralSim, BorderLayout.CENTER);
+        specSetup = new SpeciesSetup(sp);
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setPreferredSize(new Dimension(500,500));
         tabbedPane.addTab("Simulation", simPanel);
-        tabbedPane.addTab("SpeciesSetup", specSetup);
+        tabbedPane.addTab("Species Setup", specSetup);
 
         window.add(tabbedPane);
         
@@ -59,6 +62,13 @@ public class Simulation extends JPanel {
     private JMenu makeFileMenu() {
         // TODO Auto-generated method stub
         JMenu m = new JMenu("File");
+        JMenuItem saveSpecies = new JMenuItem("Save Species");
+        JMenuItem loadSpecies = new JMenuItem("Load Species");
+        JMenuItem quit = new JMenuItem("Quit");
+        m.add(saveSpecies);
+        m.add(loadSpecies);
+        m.addSeparator();
+        m.add(quit);
         return m;
     }
     /**
@@ -86,23 +96,6 @@ public class Simulation extends JPanel {
         // Save the image?
         // Save species ?
     }
-    private void setTick(int t) {
-        iteration = t;
-        tick.setText("Iteration: "+t);
-    }
     
-    private JPanel makeSidePanel() {
-        
-        JPanel p = new JPanel();
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        JToggleButton startStop = new JToggleButton("Start");
-        JButton exportImage = new JButton("Save Image");
-        tick = new JLabel("Iteration: ");
-        
-        
-        p.add(startStop);
-        p.add(exportImage);
-        p.add(tick);
-        return p;
-    }
+
 }
