@@ -33,7 +33,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
      * forms for setting up species, should load from file on creation
      */
     DefaultTableModel model = new DefaultTableModel();
-    private ArrayList<Species> species = new ArrayList<Species>();
+    private ArrayList<Species> speciesList = new ArrayList<Species>();
     private JTable tbl;
     private SidePanel sp;
     private Random rng;
@@ -47,64 +47,23 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         
         
         String[] columnTitles = {"Name","Grow Rate","Growth Rate (Competing)","Size Dependent Growth",
-                "Size Dependent Growth (Competing)","Mortality","Mortality (Competing)","Shrinkage","Shrinkage (Competing)","Color"}; 
+                "Size Dependent Growth (Competing)","Mortality","Mortality (Competing)","Shrinkage","Shrinkage (Competing)"}; 
         for (String string : columnTitles) {
             model.addColumn(string);
         }
         addSpecies(new Species(Color.green, 1, 1, 1, "A hya."));
-        addEmptyRow();
-        updateSpeciesSelection();
         tbl = new JTable(model);
-        TableColumn col = tbl.getColumnModel().getColumn(9);
-        String[] values = new String[]{"item1", "item2", "item3"};
-        col.setCellRenderer(new ComboBoxRenderer(values));
         
         tbl.setFillsViewportHeight(true);
         add(new JScrollPane(tbl),BorderLayout.CENTER);
-        add(new JLabel("Warning: modifying the species in any way will clear the simulation"),BorderLayout.SOUTH);
-        
-        
+        add(new JLabel("Warning: modifying the species in any way will clear the simulation"),BorderLayout.SOUTH);      
     }
-    public class ComboBoxRenderer extends JComboBox implements TableCellRenderer {
-        /**
-         * 
-         */
-        private static final long serialVersionUID = 7725363559647542811L;
 
-        public ComboBoxRenderer(String[] items) {
-            super(items);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table,
-                Object value, boolean isSelected, boolean hasFocus, int row,
-                int column) {
-            if (isSelected) {
-                setForeground(table.getSelectionForeground());
-                super.setBackground(table.getSelectionBackground());
-            } else {
-                setForeground(table.getForeground());
-                setBackground(table.getBackground());
-            }
-            setSelectedItem(value);
-            return this;
-        }
-    }
-    public class MyComboBoxEditor extends DefaultCellEditor {
-        /**
-         * 
-         */
-        private static final long serialVersionUID = 3338214212914073018L;
-
-        public MyComboBoxEditor(String[] items) {
-            super(new JComboBox(items));
-        }
-    }
     public void exportSpecies(String fileName) {
         // Serialize the species list to a file
         try {
             ObjectOutputStream objOut= new ObjectOutputStream(new FileOutputStream(new File(fileName)));
-            for (Species s : species) {
+            for (Species s : speciesList) {
                 objOut.writeObject(s);
             }
             objOut.close();
@@ -122,7 +81,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     public void importSpecies(String fileName) {
         try {
                 ObjectInputStream objIn = new  ObjectInputStream(new FileInputStream(fileName));
-                species = (ArrayList<Species>) objIn.readObject();
+                speciesList = (ArrayList<Species>) objIn.readObject();
                 objIn.close();
             }
          catch (FileNotFoundException e) {
@@ -140,40 +99,37 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     }
     public void addSpecies(Species s) {
         model.addRow(new Object[]{s.getName(),1,1,1,1});
-        species.add(s);
-        System.out.println(species);
+        speciesList.add(s);
+        System.out.println(speciesList);
     }
     public ArrayList<Species> getSpecies()  {
-        return species;
+        return speciesList;
     }
     public ArrayList<String> getNames() {
         ArrayList<String> names = new ArrayList<String>();
         for (int i = 0; i < model.getRowCount(); i++) {
             names.add((String) model.getValueAt(i, 0));
         }
-        
         return names;
     }
     private void updateSpeciesSelection() {
-        sp.setSpeciesSelections(species);      
+        sp.setSpeciesSelections(speciesList);      
     }
     public void addEmptyRow() {
         model.insertRow(model.getRowCount(),new Object[]  {""});
     }
     @Override
     public void tableChanged(TableModelEvent e) {
-        // Save the species to the file, update the list on the sidepanel
-        System.out.println("Table updated");
-        
+        // Save the species to the file, update the list on the sidepanel        
         // If a row is filled out, add it to the list of species
        // species.clear();
         int names = 0;
-        species.clear();
+        speciesList.clear();
         for (int i = 0; i < model.getRowCount(); i++) {
             String name = (String) model.getValueAt(i, 0);
             if(!name.isEmpty()) {
-                species.add(new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f), 1, 1, 1,name));
-                System.out.println("added name");
+                speciesList.add(new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f), 1, 1, 1,name));
+                System.out.println("added name "+name);
                 names++;
             }
           //  int grow = (Integer) model.getValueAt(i, 1);

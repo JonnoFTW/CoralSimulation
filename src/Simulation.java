@@ -57,6 +57,10 @@ public class Simulation extends JPanel {
     private JMenu makeHelpMenu() {
         // TODO Auto-generated method stub
         JMenu m = new JMenu("Help");
+        JMenuItem manualItem = new JMenuItem("User Manual");
+        JMenuItem aboutItem = new JMenuItem("About");
+        m.add(manualItem);
+        m.add(aboutItem);
         return m;
     }
     private JMenu makeFileMenu() {

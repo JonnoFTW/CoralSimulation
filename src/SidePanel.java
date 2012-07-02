@@ -14,8 +14,12 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JRadioButton;
 import javax.swing.JProgressBar;
+import javax.swing.SwingWorker;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JButton;
 
@@ -37,9 +41,13 @@ public class SidePanel extends JPanel {
     private JLabel lblY;
     private JLabel lblX;
     private JLabel lblSpecies_1;
+    private SimulationRunner smltnRnr;
+    private JToggleButton tglbtnStart;
     public SidePanel(final Simulation s) {
         this.s = s;
+        smltnRnr = new SimulationRunner();
         NumberFormat fmt = NumberFormat.getNumberInstance();
+        fmt.setMinimumFractionDigits(1);
         setBorder(new TitledBorder(null, "Setup", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         setLayout(new MigLayout("", "[][30.00][grow]", "[][][][][][][][][][][][][][]"));
         
@@ -50,21 +58,25 @@ public class SidePanel extends JPanel {
         iterationsInput.setText("100");
         iterationsInput.validate();
         add(iterationsInput, "cell 2 0,growx");
-        iterationsInput.addActionListener(new ActionListener() {
+        ActionListener inputChangeListener = new ActionListener() {
             
             @Override
-            public void actionPerformed(ActionEvent ev) {
+            public void actionPerformed(ActionEvent evt) {
                 // TODO Auto-generated method stub
-                progressBar.setMaximum(Integer.parseInt(iterationsInput.getText()));
+                
+                progressBar.setMaximum(((Number)iterationsInput.getValue()).intValue());
+                tick();
+                s.coralSim.repaint();
             }
-        });
+        };
+        iterationsInput.addActionListener(inputChangeListener);
         
         JLabel lblRows = new JLabel("Rows");
         add(lblRows, "cell 0 1");
         
         rowsInput = new JFormattedTextField(fmt);
         rowsInput.setText("50");
-        
+        rowsInput.addActionListener(inputChangeListener);
         add(rowsInput, "cell 2 1,growx");
         
         JLabel lblColumns = new JLabel("Columns");
@@ -72,17 +84,11 @@ public class SidePanel extends JPanel {
         
         columnsInput = new JFormattedTextField(fmt);
         columnsInput.setText("50");
-        
+        columnsInput.addActionListener(inputChangeListener);
         add(columnsInput, "cell 2 2,growx");
         
-        try {
-            columnsInput.commitEdit();
-            rowsInput.commitEdit();
-            iterationsInput.commitEdit();
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        lblIteration = new JLabel("Iteration: 0/"+iterationsInput.getValue());
+        add(lblIteration, "cell 2 12,alignx left");
         
         JLabel lblSpecies = new JLabel("Species");
         add(lblSpecies, "cell 0 3");
@@ -93,8 +99,16 @@ public class SidePanel extends JPanel {
         JLabel lblNewLabel = new JLabel("Simulation");
         add(lblNewLabel, "cell 0 4");
         
-        JRadioButton animateButton = new JRadioButton("Animate");
+        final JRadioButton animateButton = new JRadioButton("Animate");
         add(animateButton, "flowy,cell 2 4");
+        
+        final JRadioButton rdbtnSkip = new JRadioButton("Skip");
+        add(rdbtnSkip, "cell 2 4");
+
+        ButtonGroup animationMode = new ButtonGroup();
+        animationMode.add(rdbtnSkip);
+        animationMode.add(animateButton);
+        rdbtnSkip.setSelected(true);
         
         JButton btnStep = new JButton("Step");
         btnStep.addActionListener(new ActionListener() {
@@ -103,6 +117,7 @@ public class SidePanel extends JPanel {
             public void actionPerformed(ActionEvent arg0) {
                 // TODO Auto-generated method stub
                 s.coralSim.tick();
+                s.coralSim.repaint();
             }
         });
         
@@ -132,34 +147,46 @@ public class SidePanel extends JPanel {
         lblX.setToolTipText("Indicates the location you are about to add a cell to");
         add(lblX, "cell 2 11");
         
-        final JToggleButton tglbtnStart = new JToggleButton("Start");
+        tglbtnStart = new JToggleButton("Start");
         add(tglbtnStart, "cell 0 12,growx");
         tglbtnStart.addChangeListener(new ChangeListener() {
             
             @Override
             public void stateChanged(ChangeEvent arg0) {
                 // TODO Auto-generated method stub
-                if(tglbtnStart.isSelected()) 
+                if(tglbtnStart.isSelected())  {
                     tglbtnStart.setText("Stop");
-                else 
+                    // Stop the timer
+                }
+                else {
                     tglbtnStart.setText("Start");
+                    // Start the timer
+                }
+                if(rdbtnSkip.isSelected()) {
+                    // Iterate through without repainting
+                    skipSimulation();
+                } else if(animateButton.isSelected()) {
+                    // Iterate through once every 
+                    animateSimulation();
+                }
             }
         });
         
-        lblIteration = new JLabel("Iteration: 0/"+iterationsInput.getValue());
-        add(lblIteration, "cell 2 12,alignx left");
+
         
         
         progressBar.setStringPainted(true);
         add(progressBar, "cell 0 13 3 1,growx");
         
-        JRadioButton rdbtnSkip = new JRadioButton("Skip");
-        add(rdbtnSkip, "cell 2 4");
+        try {
+            columnsInput.commitEdit();
+            rowsInput.commitEdit();
+            iterationsInput.commitEdit();
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-        ButtonGroup animationMode = new ButtonGroup();
-        animationMode.add(rdbtnSkip);
-        animationMode.add(animateButton);
-        rdbtnSkip.setSelected(true);
     }
     public void tick() {
         // Increase the tick count
@@ -174,15 +201,13 @@ public class SidePanel extends JPanel {
         Long l = (Long) columnsInput.getValue();
         return l.intValue();
     }
-    public void setSpeciesSelections(ArrayList<Species> ss) {
-        
+    public void setSpeciesSelections(ArrayList<Species> ss) {   
         speciesSelected.removeAllItems();
         for (Species s : ss) {
             System.out.println("Adding to list: "+s);
             speciesSelected.addItem(s);
         }
         resetSim();
-        
     }
     public Species getSelectedSpecies() {
         return (Species) speciesSelected.getSelectedItem();
@@ -198,5 +223,41 @@ public class SidePanel extends JPanel {
     private void resetSim() {
         s.coralSim.reset();
         tick();
+    }
+    private void animateSimulation() {
+        
+    }
+    private void skipSimulation() {
+        if(smltnRnr.isDone())
+            smltnRnr = new SimulationRunner();
+        smltnRnr.execute();
+        
+    }
+    
+    class SimulationRunner extends SwingWorker<String, Object> {
+        @Override
+        protected String doInBackground() throws Exception {
+            // TODO Auto-generated method stub
+            try{
+                System.out.println("Going to "+iterationsInput.getValue());
+                int max = ((Number) iterationsInput.getValue()).intValue();
+                System.out.println("Max="+max);
+                System.out.println(progressBar.getValue());
+                while(s.coralSim.getTick() < max) {
+                    System.out.println(progressBar.getValue());
+                    s.coralSim.tick();
+                }
+                done();
+            } catch(Exception e) {
+                System.err.println(e);
+            }
+            return null;
+        }
+        @Override
+        protected void done() {
+            s.coralSim.repaint();
+            tglbtnStart.setSelected(false);
+        }
+        
     }
 }

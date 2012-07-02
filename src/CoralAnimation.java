@@ -172,7 +172,6 @@ public class CoralAnimation extends Canvas {
         }
         colonies = newColonies;
         s.sp.tick();
-        repaint();
     }
     public int getTick() {
         return tick;
