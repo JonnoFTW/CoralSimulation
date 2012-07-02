@@ -4,7 +4,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -15,10 +14,11 @@ import javax.swing.JTabbedPane;
 
 public class Simulation extends JPanel {
     
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 3953774251275226988L;
     public SpeciesSetup specSetup;
-    private JLabel tick;
-    private int iteration;
-    private JPanel coralsPanel;
     public SidePanel sp;
     public CoralAnimation coralSim;
     
@@ -40,7 +40,7 @@ public class Simulation extends JPanel {
         simPanel.add(coralSim, BorderLayout.CENTER);
         specSetup = new SpeciesSetup(sp);
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setPreferredSize(new Dimension(500,500));
+        tabbedPane.setPreferredSize(new Dimension(1102,702));
         tabbedPane.addTab("Simulation", simPanel);
         tabbedPane.addTab("Species Setup", specSetup);
 

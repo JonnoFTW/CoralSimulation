@@ -5,6 +5,10 @@ import java.io.Serializable;
  * 
  */
 public class Species implements Serializable{
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -6074195010790622156L;
     private Color color;
     private int die, grow, shrink;
     private String name;
