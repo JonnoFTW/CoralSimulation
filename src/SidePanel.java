@@ -18,9 +18,6 @@ import javax.swing.SwingWorker;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import javax.swing.JButton;
 
 
@@ -43,6 +40,9 @@ public class SidePanel extends JPanel {
     private JLabel lblSpecies_1;
     private SimulationRunner smltnRnr;
     private JToggleButton tglbtnStart;
+    private ArrayList<JFormattedTextField> inputsArray;
+    private JRadioButton animateButton;
+    private JRadioButton rdbtnSkip;
     public SidePanel(final Simulation s) {
         this.s = s;
         smltnRnr = new SimulationRunner();
@@ -63,7 +63,6 @@ public class SidePanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent evt) {
                 // TODO Auto-generated method stub
-                
                 progressBar.setMaximum(((Number)iterationsInput.getValue()).intValue());
                 tick();
                 s.coralSim.repaint();
@@ -75,7 +74,7 @@ public class SidePanel extends JPanel {
         add(lblRows, "cell 0 1");
         
         rowsInput = new JFormattedTextField(fmt);
-        rowsInput.setText("50");
+        rowsInput.setText("100");
         rowsInput.addActionListener(inputChangeListener);
         add(rowsInput, "cell 2 1,growx");
         
@@ -83,7 +82,7 @@ public class SidePanel extends JPanel {
         add(lblColumns, "cell 0 2");
         
         columnsInput = new JFormattedTextField(fmt);
-        columnsInput.setText("50");
+        columnsInput.setText("100");
         columnsInput.addActionListener(inputChangeListener);
         add(columnsInput, "cell 2 2,growx");
         
@@ -99,10 +98,10 @@ public class SidePanel extends JPanel {
         JLabel lblNewLabel = new JLabel("Simulation");
         add(lblNewLabel, "cell 0 4");
         
-        final JRadioButton animateButton = new JRadioButton("Animate");
+        animateButton = new JRadioButton("Animate");
         add(animateButton, "flowy,cell 2 4");
         
-        final JRadioButton rdbtnSkip = new JRadioButton("Skip");
+        rdbtnSkip = new JRadioButton("Skip");
         add(rdbtnSkip, "cell 2 4");
 
         ButtonGroup animationMode = new ButtonGroup();
@@ -156,28 +155,18 @@ public class SidePanel extends JPanel {
                 // TODO Auto-generated method stub
                 if(tglbtnStart.isSelected())  {
                     tglbtnStart.setText("Stop");
-                    // Stop the timer
+                    // STart the simulation
+                    runSimulation();
                 }
                 else {
                     tglbtnStart.setText("Start");
                     // Start the timer
-                }
-                if(rdbtnSkip.isSelected()) {
-                    // Iterate through without repainting
-                    skipSimulation();
-                } else if(animateButton.isSelected()) {
-                    // Iterate through once every 
-                    animateSimulation();
+                    stopSimulation();
                 }
             }
         });
-        
-
-        
-        
         progressBar.setStringPainted(true);
         add(progressBar, "cell 0 13 3 1,growx");
-        
         try {
             columnsInput.commitEdit();
             rowsInput.commitEdit();
@@ -186,6 +175,10 @@ public class SidePanel extends JPanel {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        inputsArray = new ArrayList<JFormattedTextField>(3);
+        inputsArray.add(iterationsInput);
+        inputsArray.add(columnsInput);
+        inputsArray.add(rowsInput);
 
     }
     public void tick() {
@@ -224,16 +217,25 @@ public class SidePanel extends JPanel {
         s.coralSim.reset();
         tick();
     }
-    private void animateSimulation() {
-        
-    }
-    private void skipSimulation() {
+
+    private void runSimulation() {
         if(smltnRnr.isDone())
             smltnRnr = new SimulationRunner();
         smltnRnr.execute();
-        
     }
-    
+    private void stopSimulation() {
+        smltnRnr.cancel(true);
+    }
+    private void enableInputs() {
+        for (JFormattedTextField i : inputsArray) {
+            i.setEnabled(true);
+        }
+    }
+    private void disableInputs() {
+        for (JFormattedTextField i : inputsArray) {
+            i.setEnabled(false);
+        }
+    }
     class SimulationRunner extends SwingWorker<String, Object> {
         @Override
         protected String doInBackground() throws Exception {
@@ -241,11 +243,17 @@ public class SidePanel extends JPanel {
             try{
                 System.out.println("Going to "+iterationsInput.getValue());
                 int max = ((Number) iterationsInput.getValue()).intValue();
+                disableInputs();
                 System.out.println("Max="+max);
                 System.out.println(progressBar.getValue());
                 while(s.coralSim.getTick() < max) {
-                    System.out.println(progressBar.getValue());
+                    if(Thread.currentThread().isInterrupted()) 
+                        break;
                     s.coralSim.tick();
+                    if(animateButton.isSelected()) {
+                        Thread.sleep(100);
+                        s.coralSim.repaint();
+                    }
                 }
                 done();
             } catch(Exception e) {
@@ -256,8 +264,8 @@ public class SidePanel extends JPanel {
         @Override
         protected void done() {
             s.coralSim.repaint();
+            enableInputs();
             tglbtnStart.setSelected(false);
         }
-        
     }
 }
