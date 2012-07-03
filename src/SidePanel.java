@@ -56,15 +56,17 @@ public class SidePanel extends JPanel {
         
         JLabel lblIterations = new JLabel("Iterations");
         add(lblIterations, "cell 0 0");
-        progressBar = new JProgressBar();
+        progressBar = new JProgressBar(0,100);
         iterationsInput = new JFormattedTextField(fmt);
-        iterationsInput.setText("100");
+        iterationsInput.setValue(100);
         iterationsInput.validate();
         add(iterationsInput, "cell 2 0,growx");
         ActionListener inputChangeListener = new ActionListener() {
             
             @Override
             public void actionPerformed(ActionEvent evt) {
+            //    progressBar.setMaximum(((Number)iterationsInput.getValue()).intValue());
+                tick(100* s.coralSim.getTick()/((Number)iterationsInput.getValue()).intValue());
                 s.coralSim.repaint();
             }
         };
@@ -74,7 +76,7 @@ public class SidePanel extends JPanel {
         add(lblRows, "cell 0 1");
         
         rowsInput = new JFormattedTextField(fmt);
-        rowsInput.setText("100");
+        rowsInput.setValue(500);
         rowsInput.addActionListener(inputChangeListener);
         add(rowsInput, "cell 2 1,growx");
         
@@ -82,7 +84,7 @@ public class SidePanel extends JPanel {
         add(lblColumns, "cell 0 2");
         
         columnsInput = new JFormattedTextField(fmt);
-        columnsInput.setText("100");
+        columnsInput.setValue(500);
         columnsInput.addActionListener(inputChangeListener);
         add(columnsInput, "cell 2 2,growx");
         
@@ -183,7 +185,7 @@ public class SidePanel extends JPanel {
     }
     public void tick(int t) {
         // Increase the tick count
-        lblIteration.setText("Iteration: "+t+"/"+iterationsInput.getValue());
+        lblIteration.setText("Iteration: "+s.coralSim.getTick()+"/"+iterationsInput.getValue());
         progressBar.setValue(t);
     }
     public int getRows() {
@@ -259,14 +261,15 @@ public class SidePanel extends JPanel {
                 int max = ((Number) iterationsInput.getValue()).intValue();
                 disableInputs();
                 while(!isCancelled() && s.coralSim.getTick() < max) {
-                    setProgress(max * s.coralSim.tick() / 100);
+                    setProgress(100*s.coralSim.tick()/max);
                     if(animateButton.isSelected()) {
                         Thread.sleep(100);
                         s.coralSim.repaint();
                     }
                 }
             } catch(Exception e) {
-                System.err.println(e);
+                //System.err.println(e);
+                e.printStackTrace();
             } finally {
                 System.out.println("Time elapsed: "+((System.nanoTime()-start)/1000000000.0));
             }
