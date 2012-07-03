@@ -18,6 +18,9 @@ import javax.swing.SwingWorker;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import javax.swing.JButton;
 
 
@@ -62,9 +65,6 @@ public class SidePanel extends JPanel {
             
             @Override
             public void actionPerformed(ActionEvent evt) {
-                // TODO Auto-generated method stub
-                progressBar.setMaximum(((Number)iterationsInput.getValue()).intValue());
-                tick();
                 s.coralSim.repaint();
             }
         };
@@ -115,7 +115,7 @@ public class SidePanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 // TODO Auto-generated method stub
-                s.coralSim.tick();
+                tick(s.coralSim.tick());
                 s.coralSim.repaint();
             }
         });
@@ -181,10 +181,10 @@ public class SidePanel extends JPanel {
         inputsArray.add(rowsInput);
 
     }
-    public void tick() {
+    public void tick(int t) {
         // Increase the tick count
-        lblIteration.setText("Iteration: "+s.coralSim.getTick()+"/"+iterationsInput.getValue());
-        progressBar.setValue(s.coralSim.getTick());
+        lblIteration.setText("Iteration: "+t+"/"+iterationsInput.getValue());
+        progressBar.setValue(t);
     }
     public int getRows() {
         Long r =  (Long) rowsInput.getValue();
@@ -215,7 +215,7 @@ public class SidePanel extends JPanel {
     }
     private void resetSim() {
         s.coralSim.reset();
-        tick();
+        tick(s.coralSim.getTick());
     }
 
     private void runSimulation() {
@@ -237,27 +237,38 @@ public class SidePanel extends JPanel {
         }
     }
     class SimulationRunner extends SwingWorker<String, Object> {
+        public SimulationRunner() {
+            // TODO Auto-generated constructor stub
+            addPropertyChangeListener(new PropertyChangeListener() {
+                
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    // TODO Auto-generated method stub
+                    if("progress".equals(evt.getPropertyName())){
+                        tick((Integer) evt.getNewValue());
+                    }
+                }
+            });
+        }
         @Override
         protected String doInBackground() throws Exception {
             // TODO Auto-generated method stub
+            long start = 0;
             try{
-                System.out.println("Going to "+iterationsInput.getValue());
+                start = System.nanoTime();
                 int max = ((Number) iterationsInput.getValue()).intValue();
                 disableInputs();
-                System.out.println("Max="+max);
-                System.out.println(progressBar.getValue());
-                while(s.coralSim.getTick() < max) {
-                    if(Thread.currentThread().isInterrupted()) 
-                        break;
-                    s.coralSim.tick();
+                while(!isCancelled() && s.coralSim.getTick() < max) {
+                    setProgress(max * s.coralSim.tick() / 100);
                     if(animateButton.isSelected()) {
                         Thread.sleep(100);
                         s.coralSim.repaint();
                     }
                 }
-                done();
             } catch(Exception e) {
                 System.err.println(e);
+            } finally {
+                System.out.println("Time elapsed: "+((System.nanoTime()-start)/1000000000.0));
             }
             return null;
         }

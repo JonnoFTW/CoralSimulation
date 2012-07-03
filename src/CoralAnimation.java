@@ -131,7 +131,7 @@ public class CoralAnimation extends Canvas {
     /**
      * Iterate the simulation through 1 year
      */
-    public void tick() {
+    public int tick() {
         tick++;
         
         HashMap<Integer,HashMap<Integer,Species>> newColonies = new HashMap<Integer,HashMap<Integer, Species>>();
@@ -142,36 +142,40 @@ public class CoralAnimation extends Canvas {
                 int x = cell.getKey();
              //   System.out.println("Checking "+x+" "+y);
                 Species s = cell.getValue();
+                if(s.getDie() <= rng.nextFloat()) {
+                    addCell(y, x, newColonies, s);
+                }
                 int ip = (((x+1)%columns)+columns)%columns;
                 int im = (((x-1)%columns)+columns)%columns;
                 int jp = (((y+1)%rows)+rows)%rows;
                 int jm = (((y-1)%rows)+rows)%rows;
                 
-                Pair[] neighbours = {
-                    new Pair(im,y),
-                    new Pair(ip,y),
-                    new Pair(x,jp),
-                    new Pair(x,jm),
-                    new Pair(ip,jp),
-                    new Pair(ip,jm),
-                    new Pair(im,jp),
-                    new Pair(im,jm)
+                int[][] neighbours = {
+                    {im,y},
+                    {ip,y},
+                    {x,jp},
+                    {x,jm},
+                    {ip,jp},
+                    {ip,jm},
+                    {im,jp},
+                    {im,jm}
                 };
-                for (Pair pair : neighbours) {
-                    if(newColonies.containsKey(pair.x) && newColonies.get(pair.x).get(pair.y) != s) {
+                for (int[] pair : neighbours) {
+                    if(newColonies.containsKey(pair[0]) && newColonies.get(pair[0]).get(pair[1]) != s) {
                         // We are competing!
                         if(rng.nextInt(100) > s.getGrow()) {
                             
                         }
                     }
-                    addCell(pair.y,pair.x,newColonies, s) ;
+                    addCell(pair[1],pair[0],newColonies, s) ;
                 }
                 
                 
             }
         }
         colonies = newColonies;
-        s.sp.tick();
+      //  s.sp.tick();
+        return tick;
     }
     public int getTick() {
         return tick;
