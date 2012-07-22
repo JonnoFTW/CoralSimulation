@@ -10,10 +10,10 @@ public class Species implements Serializable{
      */
     private static final long serialVersionUID = -6074195010790622156L;
     private Color color;
-    private int die, grow, shrink;
+    private float die, grow, shrink;
     private String name;
 
-    public Species(Color c, int die, int grow, int shrink, String name) {
+    public Species(Color c, float die, float grow, float shrink, String name) {
         setColor(c);
         this.die = die;
         this.grow = grow;
@@ -24,27 +24,27 @@ public class Species implements Serializable{
     public String toString() {
         return name;
     }
-    public int getDie() {
+    public float getDie() {
         return die;
     }
 
-    public void setDie(int die) {
+    public void setDie(float die) {
         this.die = die;
     }
 
-    public int getGrow() {
+    public float getGrow() {
         return grow;
     }
 
-    public void setGrow(int grow) {
+    public void setGrow(float grow) {
         this.grow = grow;
     }
 
-    public int getShrink() {
+    public float getShrink() {
         return shrink;
     }
 
-    public void setShrink(int shrink) {
+    public void setShrink(float shrink) {
         this.shrink = shrink;
     }
 
@@ -76,5 +76,8 @@ public class Species implements Serializable{
      */
     public void setColor(Color color) {
         this.color = color;
+    }
+    public String getReport() {
+        return String.format("%5s | %6f | %10f | %9f | %13f | %9f | %13f%n", name,grow,grow,shrink,shrink,die,die);
     }
 }

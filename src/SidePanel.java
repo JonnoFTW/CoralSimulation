@@ -1,6 +1,8 @@
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
@@ -11,6 +13,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JRadioButton;
 import javax.swing.JProgressBar;
@@ -20,8 +23,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.JButton;
+import javax.swing.SwingConstants;
 
 
 public class SidePanel extends JPanel {
@@ -33,6 +41,7 @@ public class SidePanel extends JPanel {
     /**
      * Create the panel.
      */
+    final private String LINE_SEP = System.getProperty("line.separator");
     private JComboBox speciesSelected;
     private JLabel lblIteration;
     private Simulation s;
@@ -46,13 +55,22 @@ public class SidePanel extends JPanel {
     private ArrayList<JFormattedTextField> inputsArray;
     private JRadioButton animateButton;
     private JRadioButton rdbtnSkip;
+    private JLabel lblStepmonths;
+    private JSeparator separator;
+    private JLabel lblMortality;
+    private JFormattedTextField mortalityStepInput;
+    private JLabel lblShrinkage;
+    private JFormattedTextField shrinkageStepInput;
+    private JSeparator separator_1;
+    private JLabel lblTimeScalingmonths;
     public SidePanel(final Simulation s) {
+        setToolTipText("Step inputs here");
         this.s = s;
         smltnRnr = new SimulationRunner();
         NumberFormat fmt = NumberFormat.getNumberInstance();
-        fmt.setMinimumFractionDigits(1);
+        fmt.setMinimumIntegerDigits(1);
         setBorder(new TitledBorder(null, "Setup", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        setLayout(new MigLayout("", "[][30.00][grow]", "[][][][][][][][][][][][][][]"));
+        setLayout(new MigLayout("", "[][30.00][grow]", "[][][][][][][][][][][][][][][][][][]"));
         
         JLabel lblIterations = new JLabel("Iterations");
         add(lblIterations, "cell 0 0");
@@ -77,7 +95,6 @@ public class SidePanel extends JPanel {
         
         rowsInput = new JFormattedTextField(fmt);
         rowsInput.setValue(500);
-        rowsInput.addActionListener(inputChangeListener);
         add(rowsInput, "cell 2 1,growx");
         
         JLabel lblColumns = new JLabel("Columns");
@@ -85,11 +102,42 @@ public class SidePanel extends JPanel {
         
         columnsInput = new JFormattedTextField(fmt);
         columnsInput.setValue(500);
-        columnsInput.addActionListener(inputChangeListener);
         add(columnsInput, "cell 2 2,growx");
         
+        separator = new JSeparator();
+        add(separator, "cell 0 6 3 1,growx");
+        
+        lblTimeScalingmonths = new JLabel("Time Scaling (months)");
+        lblTimeScalingmonths.setHorizontalAlignment(SwingConstants.CENTER);
+        add(lblTimeScalingmonths, "cell 0 7 3 1,alignx center");
+        
+        lblStepmonths = new JLabel("Growth");
+        add(lblStepmonths, "cell 0 8");
+        
+        JFormattedTextField growthStepInput = new JFormattedTextField();
+        growthStepInput.setText("12");
+        growthStepInput.setToolTipText("Months for growth");
+        add(growthStepInput, "cell 2 8,growx");
+        
+        lblMortality = new JLabel("Mortality");
+        add(lblMortality, "cell 0 9");
+        
+        mortalityStepInput = new JFormattedTextField();
+        mortalityStepInput.setText("12");
+        add(mortalityStepInput, "cell 2 9,growx");
+        
+        lblShrinkage = new JLabel("Shrinkage");
+        add(lblShrinkage, "cell 0 10");
+        
+        shrinkageStepInput = new JFormattedTextField();
+        shrinkageStepInput.setText("12");
+        add(shrinkageStepInput, "cell 2 10,growx");
+        
+        separator_1 = new JSeparator();
+        add(separator_1, "cell 0 12 3 1,growx");
+        
         lblIteration = new JLabel("Iteration: 0/"+iterationsInput.getValue());
-        add(lblIteration, "cell 2 12,alignx left");
+        add(lblIteration, "cell 2 16,alignx left");
         
         JLabel lblSpecies = new JLabel("Species");
         add(lblSpecies, "cell 0 3");
@@ -131,25 +179,25 @@ public class SidePanel extends JPanel {
                 resetSim();
             }
         });
-        add(btnClear, "cell 0 9,growx");
+        add(btnClear, "cell 0 13,growx");
         
         lblSpecies_1 = new JLabel("Species:");
-        add(lblSpecies_1, "cell 2 9");
-        add(btnStep, "cell 0 10,growx");
+        add(lblSpecies_1, "cell 2 13");
+        add(btnStep, "cell 0 14,growx");
         
         lblY = new JLabel("y=");
         lblY.setToolTipText("Indicates the location you are about to add a cell to");
-        add(lblY, "cell 2 10");
+        add(lblY, "cell 2 14");
         
         JButton tglbtnSaveImage = new JButton("Save Image");
-        add(tglbtnSaveImage, "cell 0 11,growx");
+        add(tglbtnSaveImage, "cell 0 15,growx");
         
         lblX = new JLabel("x=");
         lblX.setToolTipText("Indicates the location you are about to add a cell to");
-        add(lblX, "cell 2 11");
+        add(lblX, "cell 2 15");
         
         tglbtnStart = new JToggleButton("Start");
-        add(tglbtnStart, "cell 0 12,growx");
+        add(tglbtnStart, "cell 0 16,growx");
         tglbtnStart.addChangeListener(new ChangeListener() {
             
             @Override
@@ -168,19 +216,24 @@ public class SidePanel extends JPanel {
             }
         });
         progressBar.setStringPainted(true);
-        add(progressBar, "cell 0 13 3 1,growx");
-        try {
-            columnsInput.commitEdit();
-            rowsInput.commitEdit();
-            iterationsInput.commitEdit();
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        add(progressBar, "cell 0 17 3 1,growx");
+
         inputsArray = new ArrayList<JFormattedTextField>(3);
         inputsArray.add(iterationsInput);
         inputsArray.add(columnsInput);
         inputsArray.add(rowsInput);
+        inputsArray.add(growthStepInput);
+        inputsArray.add(shrinkageStepInput);
+        inputsArray.add(mortalityStepInput);
+        try {
+            for (JFormattedTextField i : inputsArray) {
+                i.commitEdit();
+                i.addActionListener(inputChangeListener);
+            }
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
     }
     public void tick(int t) {
@@ -213,7 +266,7 @@ public class SidePanel extends JPanel {
         if(s == null)
             lblSpecies_1.setText("");
         else
-            lblSpecies_1.setText(s+"");
+            lblSpecies_1.setText("Species: "+s);
     }
     private void resetSim() {
         s.coralSim.reset();
@@ -239,8 +292,9 @@ public class SidePanel extends JPanel {
         }
     }
     class SimulationRunner extends SwingWorker<String, Object> {
+        BufferedWriter outFile;
         public SimulationRunner() {
-            // TODO Auto-generated constructor stub
+            
             addPropertyChangeListener(new PropertyChangeListener() {
                 
                 @Override
@@ -255,6 +309,30 @@ public class SidePanel extends JPanel {
         @Override
         protected String doInBackground() throws Exception {
             // TODO Auto-generated method stub
+            try {
+                String outputName = s.getLogDir()+(new SimpleDateFormat("ddMMyyyy-HHmmss'.log'").format(Calendar.getInstance().getTime()));
+                outFile = new BufferedWriter(new FileWriter(outputName));
+                int maxNameSize = "Name".length();
+                StringBuilder speciesReport = new StringBuilder();
+                
+                System.out.println("Writing to: "+outputName);
+                int num = speciesSelected.getItemCount();
+                for (int i = 0;i<num;i++) {
+                    Species spec =  (Species)speciesSelected.getItemAt(i);
+                    System.out.println("Found "+spec);
+                    maxNameSize = Math.max(spec.getName().length(), maxNameSize); 
+                    speciesReport.append(spec.getReport());
+                }
+                speciesReport.insert(0,String.format("%"+maxNameSize+"s | Growth   | Growth (c) | Shrinkage | Shrinkage (c) | Mortality | Mortality (c)%n","Name"));
+                System.out.println(speciesReport);
+                outFile.write(speciesReport.toString());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();   
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();   
+            }
             long start = 0;
             try{
                 start = System.nanoTime();
@@ -262,16 +340,20 @@ public class SidePanel extends JPanel {
                 disableInputs();
                 while(!isCancelled() && s.coralSim.getTick() < max) {
                     setProgress(100*s.coralSim.tick()/max);
+                    outFile.write(s.coralSim.getReport());
                     if(animateButton.isSelected()) {
                         Thread.sleep(100);
                         s.coralSim.repaint();
                     }
                 }
+            } catch(InterruptedException e) {
+                System.out.println("Cancelled");
             } catch(Exception e) {
                 //System.err.println(e);
                 e.printStackTrace();
             } finally {
-                System.out.println("Time elapsed: "+((System.nanoTime()-start)/1000000000.0));
+                outFile.write("Time elapsed: "+((System.nanoTime()-start)/1000000000.0)+LINE_SEP);
+                outFile.close();
             }
             return null;
         }

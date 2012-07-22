@@ -2,6 +2,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -23,7 +24,7 @@ public class Simulation extends JPanel {
     public CoralAnimation coralSim;
     
     public Simulation(JFrame window) {
-       
+        createDir();
         window.setJMenuBar(makeMenuBar());
         window.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -100,6 +101,31 @@ public class Simulation extends JPanel {
         // Save the image?
         // Save species ?
     }
-    
+    private void createDir() {
+        // Create a file in users home dir,
+        // ~/CoralSim
+        //      /logs
+        //      /species
+        //      /images
+        String name = System.getProperty("user.home");
+        for (String i : new String[]{"logs","species","images"}) {
+            if(new File(name+"/CoralSim/"+i).mkdirs());    
+                System.out.println("Created "+name+"/CoralSim"+i);
+        }
+        
+    }
+    private String getDataDir(String sub) {
+        String sep = System.getProperty("file.separator");
+        return System.getProperty("user.home")+sep+"CoralSim"+sep+sub+sep;
+    }
+    public String getLogDir() {
+        return getDataDir("logs");
+    }
+    public String getSpeciesDir() {
+        return getDataDir("species");
+    }
+    public String getImageDir() {
+        return getDataDir("images");
+    }
 
 }
