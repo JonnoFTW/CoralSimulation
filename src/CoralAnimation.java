@@ -20,7 +20,9 @@ public class CoralAnimation extends Canvas {
     private int tick, rows, columns;
     private BufferStrategy bf;
     private Random rng;
+    private StringBuilder report;
     public CoralAnimation(final Simulation s) {
+        report = new StringBuilder();
         rng = new Random();
         bf = getBufferStrategy();
         this.setBackground(Color.white);
@@ -190,11 +192,12 @@ public class CoralAnimation extends Canvas {
     }
     
     public String getReport() {
-        StringBuilder s = new StringBuilder();
-        s.append("Tick:"+tick+LINE_SEP);
+        StringBuilder s = new StringBuilder(128);
+        
+        s.append("Tick:").append(tick).append(LINE_SEP);
         // Loop through each colony, report size, species
-        s.append("Colony"+LINE_SEP);
-        s.append("--------------------------------------------------------------------"+LINE_SEP);
+        s.append("Colony").append(LINE_SEP);
+        s.append("--------------------------------------------------------------------").append(LINE_SEP);
         return s.toString();
     }
 }

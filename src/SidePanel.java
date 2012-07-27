@@ -160,6 +160,7 @@ public class SidePanel extends JPanel {
         rdbtnSkip.setSelected(true);
         
         JButton btnStep = new JButton("Step");
+        btnStep.setToolTipText("Complete 1 step of the simulation");
         btnStep.addActionListener(new ActionListener() {
             
             @Override
@@ -170,7 +171,8 @@ public class SidePanel extends JPanel {
             }
         });
         
-        JButton btnClear = new JButton("Clear");
+        JButton btnClear = new JButton("Reset");
+        btnClear.setToolTipText("Clear the cells and reset the simulation");
         btnClear.addActionListener(new ActionListener() {
             
             @Override
@@ -190,6 +192,7 @@ public class SidePanel extends JPanel {
         add(lblY, "cell 2 14");
         
         JButton tglbtnSaveImage = new JButton("Save Image");
+        tglbtnSaveImage.setToolTipText("Export the current simulation an image");
         add(tglbtnSaveImage, "cell 0 15,growx");
         
         lblX = new JLabel("x=");
@@ -197,6 +200,7 @@ public class SidePanel extends JPanel {
         add(lblX, "cell 2 15");
         
         tglbtnStart = new JToggleButton("Start");
+        tglbtnStart.setToolTipText("Run the simulation up to the specified number of iterations");
         add(tglbtnStart, "cell 0 16,growx");
         tglbtnStart.addChangeListener(new ChangeListener() {
             
@@ -323,7 +327,7 @@ public class SidePanel extends JPanel {
                     maxNameSize = Math.max(spec.getName().length(), maxNameSize); 
                     speciesReport.append(spec.getReport());
                 }
-                speciesReport.insert(0,String.format("%"+maxNameSize+"s | Growth   | Growth (c) | Shrinkage | Shrinkage (c) | Mortality | Mortality (c)%n","Name"));
+                speciesReport.insert(0,String.format("\n%"+(maxNameSize)+"s | Growth   | Growth (c) | Shrinkage | Shrinkage (c) | Mortality | Mortality (c)%n","Name"));
                 System.out.println(speciesReport);
                 outFile.write(speciesReport.toString());
             } catch (IOException e) {
@@ -348,6 +352,7 @@ public class SidePanel extends JPanel {
                 }
             } catch(InterruptedException e) {
                 System.out.println("Cancelled");
+                outFile.write("Cancelled");
             } catch(Exception e) {
                 //System.err.println(e);
                 e.printStackTrace();

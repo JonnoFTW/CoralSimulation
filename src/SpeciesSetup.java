@@ -17,7 +17,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
+
+import TableHeader.ColumnGroup;
+import TableHeader.GroupableTableHeader;
 
 public class SpeciesSetup extends JPanel implements TableModelListener {
     /**
@@ -27,7 +34,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     /**
      * forms for setting up species, should load from file on creation
      */
-    DefaultTableModel model = new DefaultTableModel();
+    DefaultTableModel model = new SpeciesTableModel();
     private ArrayList<Species> speciesList = new ArrayList<Species>();
     private JTable tbl;
     private SidePanel sp;
@@ -38,16 +45,40 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         // Load in the default species
       //  importSpecies("default.dat");
         setLayout(new BorderLayout());
+      
+        
         model.addTableModelListener(this);
+        addEmptyRow();
+        tbl = new JTable(model) {
+            protected JTableHeader createDefaultTableHeader() {
+                return new GroupableTableHeader(columnModel);
+            }
+        };
         
         
-        String[] columnTitles = {"Name","Grow Rate","Growth Rate (Competing)","Size Dependent Growth",
-                "Size Dependent Growth (Competing)","Mortality","Mortality (Competing)","Shrinkage","Shrinkage (Competing)"}; 
-        for (String string : columnTitles) {
-            model.addColumn(string);
+        TableColumnModel cm = tbl.getColumnModel();
+        ColumnGroup growth = new ColumnGroup("Growth");
+        growth.add(cm.getColumn(1));
+        growth.add(cm.getColumn(2));
+        ColumnGroup growthC = new ColumnGroup("Growth (Competing)");
+        growthC.add(cm.getColumn(3));
+        growthC.add(cm.getColumn(4));
+        ColumnGroup mort = new ColumnGroup("Mortality");
+        mort.add(cm.getColumn(5));
+        mort.add(cm.getColumn(6));
+        ColumnGroup mortC = new ColumnGroup("Mortality (Competing)");
+        mortC.add(cm.getColumn(7));
+        mortC.add(cm.getColumn(8));
+        ColumnGroup shrink = new ColumnGroup("Shrinkage");
+        shrink.add(cm.getColumn(9));
+        shrink.add(cm.getColumn(10));
+        ColumnGroup  shrinkC = new ColumnGroup("Shrinkage(Competing)");
+        shrinkC.add(cm.getColumn(11));
+        shrinkC.add(cm.getColumn(12));
+        GroupableTableHeader header = (GroupableTableHeader)tbl.getTableHeader();
+        for (ColumnGroup cg : new ColumnGroup[] {growth,growthC,mort,mortC,shrink,shrinkC}) {
+            header.addColumnGroup(cg);
         }
-        addSpecies(new Species(Color.green, 1, 1, 1, "A hya."));
-        tbl = new JTable(model);
         
         tbl.setFillsViewportHeight(true);
         add(new JScrollPane(tbl),BorderLayout.CENTER);
@@ -78,6 +109,8 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 ObjectInputStream objIn = new  ObjectInputStream(new FileInputStream(fileName));
                 speciesList = (ArrayList<Species>) objIn.readObject();
                 objIn.close();
+                model.getDataVector().clear();
+                
             }
          catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
@@ -85,7 +118,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
           //  JOptionPane.showMessageDialog(this, "Error loading species file!");
         }
         catch(IOException e) {
-            JOptionPane.showMessageDialog(this, "IOException!!");
+            JOptionPane.showMessageDialog(this, "IOException: "+e);
         }
         catch(ClassNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Species Class not found!");
@@ -93,7 +126,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         
     }
     public void addSpecies(Species s) {
-        model.addRow(new Object[]{s.getName(),1,1,1,1});
+        model.addRow(new Object[]{s.getName(),s.getGrow(),s.getGrowC()});
         speciesList.add(s);
         System.out.println(speciesList);
     }
@@ -111,32 +144,71 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         sp.setSpeciesSelections(speciesList);      
     }
     public void addEmptyRow() {
-        model.insertRow(model.getRowCount(),new Object[]  {""});
+        model.addRow(new Object[]  {""});
     }
     @Override
     public void tableChanged(TableModelEvent e) {
         // Save the species to the file, update the list on the sidepanel        
         // If a row is filled out, add it to the list of species
-       // species.clear();
+
         int names = 0;
+        
         speciesList.clear();
         for (int i = 0; i < model.getRowCount(); i++) {
-            String name = (String) model.getValueAt(i, 0);
-            if(!name.isEmpty()) {
-                speciesList.add(new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f), 1, 1, 1,name));
-                System.out.println("added name "+name);
-                names++;
+            int filledIn =0;
+            for (int j = 0; j < model.getColumnCount(); j++) {
+                // Check that each column of the row is filled out
+                if(model.getValueAt(i, j) != null) {
+                    filledIn++;     
+                    //System.out.println(""+i+","+j+" is filled with: "+model.getValueAt(i, j));
+                }
             }
-          //  int grow = (Integer) model.getValueAt(i, 1);
-          //  int die = (Integer) model.getValueAt(i, 2);
-           // int shrink = (Integer) model.getValueAt(i, 3);
-          //  Color c = new Color((Integer) model.getValueAt(i, 4));
-           // species.add(new Species(c, die, grow, shrink, name));
-            
+            System.out.println("User filled in "+filledIn+" columns");
+            if(filledIn == model.getColumnCount()) {
+                names++;
+                String name = (String) model.getValueAt(i, 0);
+                float grow = (Float) model.getValueAt(i, 1);
+                float growC = (Float) model.getValueAt(i, 2);
+                float die = (Float) model.getValueAt(i, 3);
+                float dieC = (Float) model.getValueAt(i, 4);
+                float shrink = (Float) model.getValueAt(i, 5);
+                float shrinkC = (Float) model.getValueAt(i, 6);
+                Species s = new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f),
+                        die,grow,shrink,dieC,growC,shrinkC, name);
+                speciesList.add(s);
+             //   System.out.println("Added "+s);
+            }
         }
-        if(names == model.getRowCount())
+        if(names == model.getRowCount() && names != 0)
             addEmptyRow();
         updateSpeciesSelection();
+    }
+    private class SpeciesTableModel extends DefaultTableModel {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -246523524036828973L;
+        private final String[] columnTitles = {"Name","A","SD","A","SD","A","SD","A","SD","A","SD","A","SD"};
+        
+        public SpeciesTableModel() {
+            Float f = new Float(0);
+            addRow(new Object[]{"A Hya.",4.23f,0f,f,f,f,f,f,f,f,f,f,f});
+            for (String string : columnTitles) {
+                addColumn(string);
+            }
+                    
+        }
+        
+        @Override
+        public int getColumnCount() {
+            return columnTitles.length;
+        }
+
+        @Override
+        public Class getColumnClass(int c) {
+            return getValueAt(0, c).getClass();
+        }
+        
     }
 }
 
