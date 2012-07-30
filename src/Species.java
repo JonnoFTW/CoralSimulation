@@ -15,20 +15,28 @@ public class Species implements Serializable{
 
     private static final long serialVersionUID = -6074195010790622156L;
     private Color color;
-    private float die, grow, shrink, dieC, growC, shrinkC;
+    private float die, grow, shrink, dieC, growC, shrinkC, dieSD, growSD, shrinkSD, dieCSD, growCSD, shrinkCSD;
     private String name;
 
+
     /**
-     * @param c
-     * @param die
-     * @param grow
-     * @param shrink
-     * @param dieC
-     * @param growC
-     * @param shrinkC
-     * @param name
+     * @param c the color of this species
+     * @param die the mortality rate of this species
+     * @param grow the growth rate of this species
+     * @param shrink the shrinkage rate of this species
+     * @param dieC the mortality rate of this species when in competition
+     * @param growC the growth rate of this species when in competition
+     * @param shrinkC the shrinkage rate of this species when in competition
+     * @param name the name of this species
+     * @param dieSD the size dependent mortality rate of this species
+     * @param growSD the size dependent growth rate
+     * @param shrinkSD the size dependent shrinkage rate
+     * @param dieCSD the size dependent mortality rate when competinng
+     * @param growCSD the size dependent growth rate when competing
+     * @param shrinkCSD the size dependent shrinkage rate when competing
      */
-    public Species(Color c, float die, float grow, float shrink, float dieC,float growC, float shrinkC, String name) {
+    public Species(Color c, float die, float grow, float shrink, float dieC,float growC, float shrinkC, String name,
+            float dieSD, float growSD, float shrinkSD, float dieCSD,float growCSD, float shrinkCSD ) {
         setColor(c);
         this.die = die;
         this.dieC = dieC;
@@ -36,129 +44,81 @@ public class Species implements Serializable{
         this.growC = growC;
         this.shrinkC = shrinkC;
         this.shrink = shrink;
-        this.setName(name);
+        this.dieSD = dieSD;
+        this.dieCSD = dieCSD;
+        this.growSD = growSD;
+        this.growCSD = growCSD;
+        this.shrinkCSD = shrinkCSD;
+        this.shrinkSD = shrinkSD;
+        this.name = name;
     }
 
     public String toString() {
         return name;
     }
  
+    private void setColor(Color c) {
+        this.color = c;
+    }
     /**
      * @return
      */
-    public String getReport() {
-        return String.format("%5s | %6f | %10f | %9f | %13f | %9f | %13f%n", name,grow,growC,shrink,shrinkC,die,dieC);
+    public String getReport(int maxNameSize) {
+        return String.format("%"+(maxNameSize)+"s | %f + %f | %f + %f | %f + %f | %f + %f | %f + %f | %f + %f %n", name,grow,growSD,growC,growCSD,shrink,shrinkSD,shrinkC,shrinkCSD,die,dieSD,dieC,dieCSD);
     }
 
     /**
-     * @return the color
+     * @return the color of this species to use in the image representation
      */
     public Color getColor() {
         return color;
     }
 
     /**
-     * @param color the color to set
+     * @return the mortality rate of this species
      */
-    public void setColor(Color color) {
-        this.color = color;
+    public Pair<Float,Float> getDie() {
+        return new Pair<Float,Float>(this.die,this.dieSD);
+    }
+    /**
+     * @return the growth rate of this species
+     */
+    public Pair<Float,Float> getGrow() {
+        return new Pair<Float,Float>(this.grow,this.growSD);
     }
 
     /**
-     * @return the die
+     * @return the shrinkage rate of this species
      */
-    public float getDie() {
-        return die;
+    public Pair<Float,Float> getShrink() {
+        return new Pair<Float,Float>(this.shrink,this.shrinkSD);
     }
 
     /**
-     * @param die the die to set
+     * @return the the mortality rate of this species when in competition
      */
-    public void setDie(float die) {
-        this.die = die;
+    public Pair<Float,Float> getDieC() {
+        return new Pair<Float,Float>(this.dieC,this.dieCSD);
     }
 
     /**
-     * @return the grow
+     * @return the growth rate of this species when in competition
      */
-    public float getGrow() {
-        return grow;
+    public Pair<Float,Float> getGrowC() {
+        return new Pair<Float,Float>(this.growC,this.growCSD);
     }
 
     /**
-     * @param grow the grow to set
+     * @return the shrinkage rate of this species when in competition
      */
-    public void setGrow(float grow) {
-        this.grow = grow;
+    public Pair<Float,Float> getShrinkC() {
+        return new Pair<Float,Float>(this.shrinkC,this.shrinkCSD);
     }
 
     /**
-     * @return the shrink
-     */
-    public float getShrink() {
-        return shrink;
-    }
-
-    /**
-     * @param shrink the shrink to set
-     */
-    public void setShrink(float shrink) {
-        this.shrink = shrink;
-    }
-
-    /**
-     * @return the dieC
-     */
-    public float getDieC() {
-        return dieC;
-    }
-
-    /**
-     * @param dieC the dieC to set
-     */
-    public void setDieC(float dieC) {
-        this.dieC = dieC;
-    }
-
-    /**
-     * @return the growC
-     */
-    public float getGrowC() {
-        return growC;
-    }
-
-    /**
-     * @param growC the growC to set
-     */
-    public void setGrowC(float growC) {
-        this.growC = growC;
-    }
-
-    /**
-     * @return the shrinkC
-     */
-    public float getShrinkC() {
-        return shrinkC;
-    }
-
-    /**
-     * @param shrinkC the shrinkC to set
-     */
-    public void setShrinkC(float shrinkC) {
-        this.shrinkC = shrinkC;
-    }
-
-    /**
-     * @return the name
+     * @return the name of this species
      */
     public String getName() {
         return name;
-    }
-
-    /**
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
     }
 }

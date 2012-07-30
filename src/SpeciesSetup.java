@@ -17,8 +17,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
@@ -166,17 +164,24 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             System.out.println("User filled in "+filledIn+" columns");
             if(filledIn == model.getColumnCount()) {
                 names++;
-                String name = (String) model.getValueAt(i, 0);
-                float grow = (Float) model.getValueAt(i, 1);
-                float growC = (Float) model.getValueAt(i, 2);
-                float die = (Float) model.getValueAt(i, 3);
-                float dieC = (Float) model.getValueAt(i, 4);
-                float shrink = (Float) model.getValueAt(i, 5);
-                float shrinkC = (Float) model.getValueAt(i, 6);
+                String name     = (String) model.getValueAt(i, 0);
+                float grow      = (Float) model.getValueAt(i, 1);
+                float growSD    = (Float) model.getValueAt(i, 2);                
+                float growC     = (Float) model.getValueAt(i, 3);
+                float growCSD   = (Float) model.getValueAt(i, 4);
+                float die       = (Float) model.getValueAt(i, 5);
+                float dieSD     = (Float) model.getValueAt(i, 6);
+                float dieC      = (Float) model.getValueAt(i, 7);
+                float dieCSD    = (Float) model.getValueAt(i, 8);
+                float shrink    = (Float) model.getValueAt(i, 9);
+                float shrinkSD  = (Float) model.getValueAt(i, 10);
+                float shrinkC   = (Float) model.getValueAt(i, 11);
+                float shrinkCSD = (Float) model.getValueAt(i, 12);
+                
                 Species s = new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f),
-                        die,grow,shrink,dieC,growC,shrinkC, name);
+                        die,grow,shrink,dieC,growC,shrinkC, name, dieSD, growSD, shrinkSD, dieCSD, growCSD, shrinkCSD);
                 speciesList.add(s);
-             //   System.out.println("Added "+s);
+                System.out.println("Added "+s);
             }
         }
         if(names == model.getRowCount() && names != 0)
@@ -188,15 +193,15 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
          * 
          */
         private static final long serialVersionUID = -246523524036828973L;
+        //                                           Growth   Growth(c) Mort     Mort(c)  Shrink   Shrink(c)
         private final String[] columnTitles = {"Name","A","SD","A","SD","A","SD","A","SD","A","SD","A","SD"};
         
         public SpeciesTableModel() {
-            Float f = new Float(0);
-            addRow(new Object[]{"A Hya.",4.23f,0f,f,f,f,f,f,f,f,f,f,f});
+            addRow(new Object[]{"A Hya.", 4.23f, 0f, 2.55f ,0.00078f,  0.39825816384942136f,0.1923691778874601f,0.10625308083644924f,0.0f ,2.07f,0.0014f,4.46f,0f});
+            addRow(new Object[]{"PD", 0.38f, 0f, 0.36f, 0f,   0.61547599f,0.27085479f,0.12465263999999998f,0.0396f  ,1.04f,0.0025f,0.6f,0.0019f});
             for (String string : columnTitles) {
                 addColumn(string);
             }
-                    
         }
         
         @Override

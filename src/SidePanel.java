@@ -24,7 +24,6 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -264,7 +263,7 @@ public class SidePanel extends JPanel {
     public Species getSelectedSpecies() {
         return (Species) speciesSelected.getSelectedItem();
     }
-    public void setXY(Pair p,Species s) {
+    public void setXY(Pair<Integer, Integer> p,Species s) {
         lblX.setText("x="+p.x);
         lblY.setText("y="+p.y);
         if(s == null)
@@ -323,11 +322,13 @@ public class SidePanel extends JPanel {
                 int num = speciesSelected.getItemCount();
                 for (int i = 0;i<num;i++) {
                     Species spec =  (Species)speciesSelected.getItemAt(i);
-                    System.out.println("Found "+spec);
-                    maxNameSize = Math.max(spec.getName().length(), maxNameSize); 
-                    speciesReport.append(spec.getReport());
+                    maxNameSize = Math.max(spec.getName().length(), maxNameSize);
                 }
-                speciesReport.insert(0,String.format("\n%"+(maxNameSize)+"s | Growth   | Growth (c) | Shrinkage | Shrinkage (c) | Mortality | Mortality (c)%n","Name"));
+                for (int i = 0;i<num;i++) {
+                    Species spec =  (Species)speciesSelected.getItemAt(i);
+                    speciesReport.append(spec.getReport(maxNameSize));
+                }
+                speciesReport.insert(0,String.format("\n%"+(maxNameSize)+"s | %19s | %19s | %19s | %19s | %19s | %19s%n","Name", "Growth","Growth (c)", "Shrinkage", "Shrinkage (c)","Mortality","Mortality (c)"));
                 System.out.println(speciesReport);
                 outFile.write(speciesReport.toString());
             } catch (IOException e) {
