@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.io.Serializable;
 /**
  * @author Jonathan
+ * 
  * A species of coral. Each species tracks 3 rates:
  *  - Growth
  *  - Mortality

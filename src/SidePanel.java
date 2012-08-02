@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.SwingConstants;
+import javax.swing.JCheckBox;
 
 
 public class SidePanel extends JPanel {
@@ -46,8 +47,8 @@ public class SidePanel extends JPanel {
     private Simulation s;
     final private JProgressBar progressBar;
     private JFormattedTextField rowsInput, columnsInput, iterationsInput;
-    private JLabel lblY;
-    private JLabel lblX;
+    private JLabel lblColony;
+    private JLabel lblXY;
     private JLabel lblSpecies_1;
     private SimulationRunner smltnRnr;
     private JToggleButton tglbtnStart;
@@ -62,6 +63,7 @@ public class SidePanel extends JPanel {
     private JFormattedTextField shrinkageStepInput;
     private JSeparator separator_1;
     private JLabel lblTimeScalingmonths;
+    public JCheckBox chckbxShowColNo;
     public SidePanel(final Simulation s) {
         setToolTipText("Step inputs here");
         this.s = s;
@@ -69,7 +71,7 @@ public class SidePanel extends JPanel {
         NumberFormat fmt = NumberFormat.getNumberInstance();
         fmt.setMinimumIntegerDigits(1);
         setBorder(new TitledBorder(null, "Setup", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        setLayout(new MigLayout("", "[][30.00][grow]", "[][][][][][][][][][][][][][][][][][]"));
+        setLayout(new MigLayout("", "[][21.00][100px:n,grow]", "[][][][][][][][][][][][][][][][][][]"));
         
         JLabel lblIterations = new JLabel("Iterations");
         add(lblIterations, "cell 0 0");
@@ -93,14 +95,14 @@ public class SidePanel extends JPanel {
         add(lblRows, "cell 0 1");
         
         rowsInput = new JFormattedTextField(fmt);
-        rowsInput.setValue(500);
+        rowsInput.setValue(50);
         add(rowsInput, "cell 2 1,growx");
         
         JLabel lblColumns = new JLabel("Columns");
         add(lblColumns, "cell 0 2");
         
         columnsInput = new JFormattedTextField(fmt);
-        columnsInput.setValue(500);
+        columnsInput.setValue(50);
         add(columnsInput, "cell 2 2,growx");
         
         separator = new JSeparator();
@@ -186,17 +188,17 @@ public class SidePanel extends JPanel {
         add(lblSpecies_1, "cell 2 13");
         add(btnStep, "cell 0 14,growx");
         
-        lblY = new JLabel("y=");
-        lblY.setToolTipText("Indicates the location you are about to add a cell to");
-        add(lblY, "cell 2 14");
+        lblColony = new JLabel("Colony:");
+        lblColony.setToolTipText("Indicates the location you are about to add a cell to");
+        add(lblColony, "cell 2 14");
         
         JButton tglbtnSaveImage = new JButton("Save Image");
         tglbtnSaveImage.setToolTipText("Export the current simulation an image");
         add(tglbtnSaveImage, "cell 0 15,growx");
         
-        lblX = new JLabel("x=");
-        lblX.setToolTipText("Indicates the location you are about to add a cell to");
-        add(lblX, "cell 2 15");
+        lblXY = new JLabel("x=");
+        lblXY.setToolTipText("Indicates the location you are about to add a cell to");
+        add(lblXY, "cell 2 15");
         
         tglbtnStart = new JToggleButton("Start");
         tglbtnStart.setToolTipText("Run the simulation up to the specified number of iterations");
@@ -228,6 +230,9 @@ public class SidePanel extends JPanel {
         inputsArray.add(growthStepInput);
         inputsArray.add(shrinkageStepInput);
         inputsArray.add(mortalityStepInput);
+        
+        chckbxShowColNo = new JCheckBox("Show col. no.");
+        add(chckbxShowColNo, "cell 2 4");
         try {
             for (JFormattedTextField i : inputsArray) {
                 i.commitEdit();
@@ -263,11 +268,11 @@ public class SidePanel extends JPanel {
     public Species getSelectedSpecies() {
         return (Species) speciesSelected.getSelectedItem();
     }
-    public void setXY(Pair<Integer, Integer> p,Species s) {
-        lblX.setText("x="+p.x);
-        lblY.setText("y="+p.y);
+    public void setXY(Pair<Integer, Integer> p,Species s,int colony) {
+        lblXY.setText(p.x+", "+p.y);
+        lblColony.setText("Colony: "+colony );
         if(s == null)
-            lblSpecies_1.setText("");
+            lblSpecies_1.setText("Species:");
         else
             lblSpecies_1.setText("Species: "+s);
     }
