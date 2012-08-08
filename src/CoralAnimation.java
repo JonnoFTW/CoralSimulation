@@ -9,30 +9,39 @@ import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
 
+/**
+ * @author Jonathan Mackenzie
+ * 
+ * The animation canvas for the simulation.
+ *
+ */
 public class CoralAnimation extends Canvas {
     /**
      * 
      */
     private static final long serialVersionUID = 946419120335674464L;
-    private Species[][] cells;
-    private int[][] colonies;
-    private HashMap<Integer, Pair<Species,Integer>> colonyCount = new HashMap<Integer, Pair<Species,Integer>>();
-    private int colCount = 1;
+    // A map from colony number to a species, and a set of integers indicating the positions of cells belonging to that 
+    // colony
+    private HashMap<Integer, Colony> colonies = new HashMap<Integer, Colony>();
+    private int colCount = 0;
     final private String LINE_SEP = System.getProperty("line.separator");
-    private Simulation s;
+    private Simulation sim;
     private int tick, rows, columns;
     private BufferStrategy bf;
     private Random rng;
+    private StringBuilder notes; // Comments about the simulation for a  tick
     
     public CoralAnimation(final Simulation s) {
         rng = new Random();
+        notes = new StringBuilder();
         bf = getBufferStrategy();
         this.setBackground(Color.white);
-        this.s = s;
+        this.sim = s;
         reset();
         addMouseMotionListener(new MouseMotionListener() {
             
@@ -40,11 +49,9 @@ public class CoralAnimation extends Canvas {
             public void mouseMoved(MouseEvent e) {
                 // TODO Auto-generated method stub
                 Pair<Integer, Integer> p = getXY(e);
-                try {
-                s.sp.setXY(p,getSpecies(p),colonies[p.x][p.y]);
-                } catch( ArrayIndexOutOfBoundsException err){
-                    
-                }
+                Pair<Integer, Species> cell = getSpecies(p);
+                if(cell != null)
+                    sim.sp.setXY(p,cell.y,cell.x);
             }
             
             @Override
@@ -60,64 +67,63 @@ public class CoralAnimation extends Canvas {
                 // Clicking a cell will flip it,
                 // Killing the cell or bringing it back to life
                 Pair<Integer,Integer> p = getXY(e);
-                if(getSpecies(p) != null) { 
-                        System.out.println("Removing cell at: x="+p.x+" y="+p.y+", "+cells[p.x][p.y]);
-                        removeCell(p.x, p.y);
-                        repaint();
-                        return;
+                Pair<Integer, Species> cell = getSpecies(p);
+                if(cell != null) { 
+                    notes.append("Removing cell at: x="+p.x+" y="+p.y+", "+cell.y).append(LINE_SEP);
+                    removeCell(p.x, p.y, cell.x);
+                } else {
+                    notes.append("Marking cell at: x="+p.x+" y="+p.y+" as "+sim.sp.getSelectedSpecies()+ ", colony no. "+colCount).append(LINE_SEP);
+                    addCell(p.x,p.y, sim.sp.getSelectedSpecies(),++colCount) ;
+                    
                 }
-                addCell(p.x,p.y,cells, (Species) s.sp.getSelectedSpecies(),colCount++) ;
-                System.out.println("Marking cell at: x="+p.x+" y="+p.y+" as "+s.sp.getSelectedSpecies()+ ", colony no. "+colCount);
                 repaint();
             }
         });
     }
-    private Species getSpecies(Pair<Integer,Integer> p) {
-        try {
-            return cells[p.x][p.y];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return null;
+    private Pair<Integer,Species> getSpecies(Pair<Integer,Integer> p) {
+        for (Entry<Integer, Colony> c : colonies.entrySet()) {
+            if(c.getValue().cells.contains(p.x*columns + p.y)) 
+                return new Pair<Integer,Species>(c.getKey(),c.getValue().species);
         }
+        return null;
     }
     private Pair<Integer,Integer> getXY(MouseEvent e) {
-        int x = (int) (e.getX()/(getWidth()/s.sp.getRows()));
-        int y = (int) (e.getY()/(getHeight()/s.sp.getColumns()));
+        int x = (int) (e.getX()/(getWidth()/sim.sp.getRows()));
+        int y = (int) (e.getY()/(getHeight()/sim.sp.getColumns()));
         return new Pair<Integer,Integer>(x,y);
     }
-    private void addCell(int x, int y, Species[][] col, Species s, int colonyNo) {
-        try{
-            col[x][y] = s;
-            colonies[x][y] = colonyNo;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // TODO: handle exception
+    private void addCell(int x, int y, Species s, int colonyNo) {
+        if(!colonies.containsKey(colonyNo)) {
+            colonies.put(colonyNo, new Colony(s));
         }
+        colonies.get(colonyNo).cells.add(x*columns +y);
     }
     /**
      * Merge 2 colony counts, as selected when performing a step
      */
-    private void mergeColonies(int colony1, int colony2,int x, int y) {
-    //    System.out.printf("Merging %d with %d\n",colony1,colony2);
-        mergeColonies_(colony2, x, y);
+    private void mergeColonies(int colony1, int colony2) {
+        notes.append(String.format("Merging colony %d with %d\n",colony1,colony2));
+        colonies.get(colony1).cells.addAll(colonies.get(colony2).cells);
+        colonies.remove(colony2);
     }
     
-    private void mergeColonies_(int newColony,int x, int y) {
-        if(colonies[x][y] != newColony) return;
-        colonies[x][y] = newColony;
-        for (int[] p : getNeighbours(x, y)) {
-            if(colonies[p[0]][p[1]] != newColony && cells[p[0]][p[1]] == cells[x][x]) {
-                mergeColonies_(newColony, p[0], p[1]);
-            } 
+    private void killColony(int colonyNumber) {
+        notes.append("Colony ").append(colonyNumber).append(" died").append(LINE_SEP);
+        colonies.remove(colonyNumber);
+    }
+    
+    private void removeCell(int x, int y, int colonyNumber) {
+        // Remove a cell at coordinates if any
+        System.out.printf("Removing cell at %d,$d\n",x,y);
+        colonies.get(colonyNumber).cells.remove(x*columns + y);
+        if(colonies.get(colonyNumber).cells.isEmpty()) {
+            colonies.remove(colonyNumber);
+            notes.append("Colony ").append(colonyNumber).append(" has died out due to shrinkage");
         }
     }
-    
-    private void removeCell(int x, int y) {
-        // Remove a cell at coordinates if any.
-        cells[x][y] = null;
-        colonies[x][y] = 0;
-    }
     public void paint(Graphics g) {
-        rows = s.sp.getRows();
-        columns = s.sp.getColumns();
+        rows = sim.sp.getRows();
+        columns = sim.sp.getColumns();
         createBufferStrategy(1);
         
         bf = getBufferStrategy();
@@ -138,28 +144,27 @@ public class CoralAnimation extends Canvas {
      * @param g
      */
     private void render(Graphics g) {
-        for (int x = 0; x < cells.length; x++) {
-            for (int y = 0; y < cells[x].length; y++) {
-                if(cells[x][y] != null) {
-                    g.setColor(cells[x][y].getColor());
-                    g.fillRect(x*(getWidth()/columns), y*(getHeight()/rows),getWidth()/columns ,getHeight()/rows);
+        for (Entry<Integer,Colony> colony : colonies.entrySet()) {
+            for (Pair<Integer, Integer> i : colony.getValue().getPositions(rows, columns)) {
+                int x = i.x;
+                int y = i.y;
+                g.setColor(colony.getValue().species.getColor());
+                g.fillRect(x*(getWidth()/columns), y*(getHeight()/rows),getWidth()/columns ,getHeight()/rows);
+                // Draw the colony number
+                if(sim.sp.chckbxShowColNo.isSelected()) {
+                    g.setColor(Color.black);
+                    g.drawString(colony.getKey()+"",x*(getWidth()/columns), y*(getHeight()/rows)+g.getFontMetrics().getHeight());
                 }
             }
         }
+        // Draw the grid
         for(int x = 0; x < columns; x++ ) {
             for (int y = 0; y < rows; y++) {
                 g.setColor(Color.GRAY);
                 g.drawRect(x*(getWidth()/columns), y*(getHeight()/rows),getWidth()/columns ,getHeight()/rows);
             }
         } 
-        if(s.sp.chckbxShowColNo.isSelected()) {
-            for(int x = 0; x < columns; x++ ) {
-                for (int y = 0; y < rows; y++) {
-                    g.setColor(Color.black);
-                    g.drawString(colonies[x][y]+"",x*(getWidth()/columns), y*(getHeight()/rows)+g.getFontMetrics().getHeight());
-                }
-            } 
-        }
+        
         
     }
     /**
@@ -167,61 +172,45 @@ public class CoralAnimation extends Canvas {
      */
     public int tick() {
         tick++;
-        
-        colonyCount.clear();
-        
-        Species[][] newColonies = makeCells();
-        for (int x = 0; x < cells.length; x++) {
-            for (int y = 0; y < cells[x].length; y++) {
-                // Perform calculation here
-             //   System.out.println("Checking "+x+" "+y);
-                Species s = cells[x][y];
-                int colony = colonies[x][y];
-                if(s== null) continue;
-                if(s.getDie().x <= rng.nextFloat()) {
-                    addCell(x, y, newColonies, s,colony);
-                }
-                int[][] neighbours = getNeighbours(x, y);
-                for (int[] pair : neighbours) {
-                    // Homogeneous neighbours
-                    if(newColonies[pair[0]][pair[1]] == s){
-                        int neighbourColony = colonies[pair[0]][pair[1]];
-                        if(neighbourColony != 0 && neighbourColony != colony)
-                            // Merge the 2
-                            mergeColonies(neighbourColony, colony,x,y);
-                        continue;
-                    }
-                    if(newColonies[pair[0]][pair[1]] != s) {
-                        // We are competing!
-                        if(rng.nextInt(100) > s.getGrow().x) {
-                            
-                        }
-                    }
-                    addCell(pair[0],pair[1],newColonies, s,colony);
-                }
-                
-                
-            }
-        }
-        cells = newColonies;
         // This loop should probably be in the previous loop
-        for (int x = 0; x < newColonies.length; x++) {
-            for (int y = 0; y < newColonies[x].length; y++) {
-                if(colonies[x][y] == 0) continue;
-                if(colonyCount.get(colonies[x][y]) == null) {
-                        colonyCount.put(colonies[x][y], new Pair<Species,Integer>(cells[x][y],1) );
+        for (Entry<Integer, Colony> colony : colonies.entrySet()) {
+            boolean competing = true;
+            Float newColonySize = 0f;
+            Species s = colony.getValue().species;
+            Integer colonySize = colony.getValue().cells.size();
+            Integer colonyNumber = colony.getKey();
+            float timeScaling = 12/12;
+            // Find if this colony is competing
+            // find some way to do this efficiently
+            if(competing) {
+                if(s.getDieC(colonySize)*(timeScaling) < rng.nextFloat()) {
+                    killColony(colonyNumber);
+                    continue;
                 } else {
-                    Integer c = colonyCount.get(colonies[x][y]).y;
-                    colonyCount.put(colonies[x][y], new Pair<Species,Integer>(cells[x][y],c+1));
+                    // Adjust the size of the colony
+                     newColonySize = colonySize * ( 1+ (s.getGrowC(colonySize)*timeScaling - s.getShrinkC(colonySize)*timeScaling));
+                    // Grow out the colony until it reaches the new size
                 }
+            } else {
+                
             }
-        }
+            while(colonies.get(colonyNumber).cells.size() < newColonySize) {
+                // Add more cells
+                // Use a recursive grow after we've found 1 cell of the current colony,
+                // repeat growing until new size is met
+                // or if there is net shrinkage, kill cells
+            }
+        }     
         return tick;
     }
+    
     public int getTick() {
         return tick;
     }
 
+    /**
+     * @return
+     */
     public int getColumns() {
         return columns;
     }
@@ -231,13 +220,11 @@ public class CoralAnimation extends Canvas {
     }
     public void reset() {
         tick = 0;
-        cells  = makeCells();
-        colonies = new int[s.sp.getRows()][s.sp.getColumns()];
+        colonies = new HashMap<Integer, Colony>();
         repaint();
+        colCount = 0;
     }
-    private Species[][] makeCells() {
-        return new Species[s.sp.getRows()][s.sp.getColumns()];
-    }
+    
     private int[][] getNeighbours(int x, int y) {
         int ip = (((x+1)%columns)+columns)%columns;
         int im = (((x-1)%columns)+columns)%columns;
@@ -261,9 +248,11 @@ public class CoralAnimation extends Canvas {
         
         s.append("Tick:").append(tick).append(LINE_SEP);
         // Loop through each colony, report size, species
-        for (Entry<Integer, Pair<Species, Integer>> p: colonyCount.entrySet()) {
-            s.append("Colony id:").append(p.getKey()).append(", ").append(p.getValue().x).append(", size: ").append(p.getValue().y).append(LINE_SEP);
+        for (Entry<Integer, Colony> p: colonies.entrySet()) {
+            s.append("Colony id:").append(p.getKey()).append(", ").append(p.getValue().species).append(", size: ").append(p.getValue().cells.size()).append(LINE_SEP);
         }
+        s.append(notes);
+        notes = new StringBuilder();
         s.append("--------------------------------------------------------------------").append(LINE_SEP);
         return s.toString();
     }

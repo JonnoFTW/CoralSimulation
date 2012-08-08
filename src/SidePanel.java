@@ -95,14 +95,14 @@ public class SidePanel extends JPanel {
         add(lblRows, "cell 0 1");
         
         rowsInput = new JFormattedTextField(fmt);
-        rowsInput.setValue(50);
+        rowsInput.setValue(10);
         add(rowsInput, "cell 2 1,growx");
         
         JLabel lblColumns = new JLabel("Columns");
         add(lblColumns, "cell 0 2");
         
         columnsInput = new JFormattedTextField(fmt);
-        columnsInput.setValue(50);
+        columnsInput.setValue(10);
         add(columnsInput, "cell 2 2,growx");
         
         separator = new JSeparator();
@@ -232,6 +232,7 @@ public class SidePanel extends JPanel {
         inputsArray.add(mortalityStepInput);
         
         chckbxShowColNo = new JCheckBox("Show col. no.");
+        chckbxShowColNo.setSelected(true);
         add(chckbxShowColNo, "cell 2 4");
         try {
             for (JFormattedTextField i : inputsArray) {

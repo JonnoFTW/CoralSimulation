@@ -1,7 +1,7 @@
 import java.awt.Color;
 import java.io.Serializable;
 /**
- * @author Jonathan
+ * @author Jonathan Mackenzie
  * 
  * A species of coral. Each species tracks 3 rates:
  *  - Growth
@@ -76,44 +76,45 @@ public class Species implements Serializable{
     }
 
     /**
+     * @param colonySize 
      * @return the mortality rate of this species
      */
-    public Pair<Float,Float> getDie() {
-        return new Pair<Float,Float>(this.die,this.dieSD);
+    public Float getDie(int colonySize) {
+        return new Float(this.die+this.dieSD*colonySize);
     }
     /**
      * @return the growth rate of this species
      */
-    public Pair<Float,Float> getGrow() {
-        return new Pair<Float,Float>(this.grow,this.growSD);
+    public Float getGrow(int colonySize) {
+        return new Float(this.grow+this.growSD*colonySize);
     }
 
     /**
      * @return the shrinkage rate of this species
      */
-    public Pair<Float,Float> getShrink() {
-        return new Pair<Float,Float>(this.shrink,this.shrinkSD);
+    public Float getShrink(int colonySize) {
+        return new Float(this.shrink+this.shrinkSD*colonySize);
     }
 
     /**
      * @return the the mortality rate of this species when in competition
      */
-    public Pair<Float,Float> getDieC() {
-        return new Pair<Float,Float>(this.dieC,this.dieCSD);
+    public Float getDieC(int colonySize) {
+        return new Float(this.dieC+this.dieCSD*colonySize);
     }
 
     /**
      * @return the growth rate of this species when in competition
      */
-    public Pair<Float,Float> getGrowC() {
-        return new Pair<Float,Float>(this.growC,this.growCSD);
+    public Float getGrowC(int colonySize) {
+        return new Float(this.growC+this.growCSD*colonySize);
     }
 
     /**
      * @return the shrinkage rate of this species when in competition
      */
-    public Pair<Float,Float> getShrinkC() {
-        return new Pair<Float,Float>(this.shrinkC,this.shrinkCSD);
+    public Float getShrinkC(int colonySize) {
+        return new Float(this.shrinkC + this.shrinkCSD * colonySize*colonySize);
     }
 
     /**

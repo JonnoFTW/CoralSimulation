@@ -123,11 +123,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         }
         
     }
-    public void addSpecies(Species s) {
-        model.addRow(new Object[]{s.getName(),s.getGrow(),s.getGrowC()});
-        speciesList.add(s);
-        System.out.println(speciesList);
-    }
+
     public ArrayList<Species> getSpecies()  {
         return speciesList;
     }
@@ -196,7 +192,9 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         //                                           Growth   Growth(c) Mort     Mort(c)  Shrink   Shrink(c)
         private final String[] columnTitles = {"Name","A","SD","A","SD","A","SD","A","SD","A","SD","A","SD"};
         
+        
         public SpeciesTableModel() {
+            // These should really be serialised
             addRow(new Object[]{"A Hya.", 4.23f, 0f, 2.55f ,0.00078f,  0.39825816384942136f,0.1923691778874601f,0.10625308083644924f,0.0f ,2.07f,0.0014f,4.46f,0f});
             addRow(new Object[]{"PD", 0.38f, 0f, 0.36f, 0f,   0.61547599f,0.27085479f,0.12465263999999998f,0.0396f  ,1.04f,0.0025f,0.6f,0.0019f});
             for (String string : columnTitles) {
