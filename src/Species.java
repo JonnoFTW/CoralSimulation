@@ -39,8 +39,8 @@ public class Species implements Serializable{
     public Species(Color c, float die, float grow, float shrink, float dieC,float growC, float shrinkC, String name,
             float dieSD, float growSD, float shrinkSD, float dieCSD,float growCSD, float shrinkCSD ) {
         setColor(c);
-        this.die = die;
-        this.dieC = dieC;
+        this.die = die/100;
+        this.dieC = dieC/100;
         this.grow = grow;
         this.growC = growC;
         this.shrinkC = shrinkC;

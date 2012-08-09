@@ -271,7 +271,10 @@ public class SidePanel extends JPanel {
     }
     public void setXY(Pair<Integer, Integer> p,Species s,int colony) {
         lblXY.setText(p.x+", "+p.y);
-        lblColony.setText("Colony: "+colony );
+        if(colony != 0) 
+            lblColony.setText("Colony: "+colony );
+        else
+            lblColony.setText("Colony: ");
         if(s == null)
             lblSpecies_1.setText("Species:");
         else

@@ -6,4 +6,8 @@ public class Pair<T,V> {
       this.x = x; 
       this.y = y; 
     }
+    public String toString() {
+        return String.format("(%s,%s)", x,y);
+    }
+    
 }
