@@ -1,5 +1,8 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,6 +13,8 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.swing.AbstractCellEditor;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -19,6 +24,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumnModel;
 
 import TableHeader.ColumnGroup;
@@ -48,12 +54,17 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         model.addTableModelListener(this);
         addEmptyRow();
         tbl = new JTable(model) {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 4222953148165159012L;
+
             protected JTableHeader createDefaultTableHeader() {
                 return new GroupableTableHeader(columnModel);
             }
         };
         
-        
+        tbl.setDefaultEditor(ArrayList.class, new SizeClassTableCellEditor());
         TableColumnModel cm = tbl.getColumnModel();
         ColumnGroup growth = new ColumnGroup("Growth");
         growth.add(cm.getColumn(1));
@@ -61,20 +72,14 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         ColumnGroup growthC = new ColumnGroup("Growth (Competing)");
         growthC.add(cm.getColumn(3));
         growthC.add(cm.getColumn(4));
-        ColumnGroup mort = new ColumnGroup("Mortality");
-        mort.add(cm.getColumn(5));
-        mort.add(cm.getColumn(6));
-        ColumnGroup mortC = new ColumnGroup("Mortality (Competing)");
-        mortC.add(cm.getColumn(7));
-        mortC.add(cm.getColumn(8));
         ColumnGroup shrink = new ColumnGroup("Shrinkage");
-        shrink.add(cm.getColumn(9));
-        shrink.add(cm.getColumn(10));
+        shrink.add(cm.getColumn(5));
+        shrink.add(cm.getColumn(6));
         ColumnGroup  shrinkC = new ColumnGroup("Shrinkage(Competing)");
-        shrinkC.add(cm.getColumn(11));
-        shrinkC.add(cm.getColumn(12));
+        shrinkC.add(cm.getColumn(7));
+        shrinkC.add(cm.getColumn(8));
         GroupableTableHeader header = (GroupableTableHeader)tbl.getTableHeader();
-        for (ColumnGroup cg : new ColumnGroup[] {growth,growthC,mort,mortC,shrink,shrinkC}) {
+        for (ColumnGroup cg : new ColumnGroup[] {growth,growthC,shrink,shrinkC}) {
             header.addColumnGroup(cg);
         }
         
@@ -157,7 +162,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                     //System.out.println(""+i+","+j+" is filled with: "+model.getValueAt(i, j));
                 }
             }
-            System.out.println("User filled in "+filledIn+" columns");
+      //      System.out.println("User filled in "+filledIn+" columns");
             if(filledIn == model.getColumnCount()) {
                 names++;
                 String name     = (String) model.getValueAt(i, 0);
@@ -165,19 +170,17 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 float growSD    = (Float) model.getValueAt(i, 2);                
                 float growC     = (Float) model.getValueAt(i, 3);
                 float growCSD   = (Float) model.getValueAt(i, 4);
-                float die       = (Float) model.getValueAt(i, 5);
-                float dieSD     = (Float) model.getValueAt(i, 6);
-                float dieC      = (Float) model.getValueAt(i, 7);
-                float dieCSD    = (Float) model.getValueAt(i, 8);
-                float shrink    = (Float) model.getValueAt(i, 9);
-                float shrinkSD  = (Float) model.getValueAt(i, 10);
-                float shrinkC   = (Float) model.getValueAt(i, 11);
-                float shrinkCSD = (Float) model.getValueAt(i, 12);
+                float shrink    = (Float) model.getValueAt(i, 5);
+                float shrinkSD  = (Float) model.getValueAt(i, 6);
+                float shrinkC   = (Float) model.getValueAt(i, 7);
+                float shrinkCSD = (Float) model.getValueAt(i, 8);
+                ArrayList<SizeClass> sizeClasses = (ArrayList<SizeClass>) model.getValueAt(i, 9);
+                
                 
                 Species s = new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f),
-                        die,grow,shrink,dieC,growC,shrinkC, name, dieSD, growSD, shrinkSD, dieCSD, growCSD, shrinkCSD);
+                        grow,shrink,growC,shrinkC, name,  growSD, shrinkSD, growCSD, shrinkCSD, sizeClasses);
                 speciesList.add(s);
-                System.out.println("Added "+s);
+       //         System.out.println("Added "+s);
             }
         }
         if(names == model.getRowCount() && names != 0)
@@ -185,18 +188,29 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         updateSpeciesSelection();
     }
     private class SpeciesTableModel extends DefaultTableModel {
-        /**
-         * 
-         */
         private static final long serialVersionUID = -246523524036828973L;
-        //                                           Growth   Growth(c) Mort     Mort(c)  Shrink   Shrink(c)
-        private final String[] columnTitles = {"Name","A","SD","A","SD","A","SD","A","SD","A","SD","A","SD"};
+        //                                            Growth   Growth(c)Shrink   Shrink(c)
+        private final String[] columnTitles = {"Name","A","SD","A","SD","A","SD","A","SD","Size Classes"};
         
         
         public SpeciesTableModel() {
             // These should really be serialised
-            addRow(new Object[]{"A Hya.", 4.23f, 0f, 2.55f ,0.00078f,  0.39825816384942136f,0.1923691778874601f,0.10625308083644924f,0.0f ,2.07f,0.0014f,4.46f,0f});
-            addRow(new Object[]{"PD", 0.38f, 0f, 0.36f, 0f,   0.61547599f,0.27085479f,0.12465263999999998f,0.0396f  ,1.04f,0.0025f,0.6f,0.0019f});
+            ArrayList<SizeClass> ahyaSC = new ArrayList<SizeClass>();
+            //0-200, 200.0001-800, 800.0001-2000, >2000
+            ahyaSC.add(new SizeClass(0, 200, (float) (1-Math.pow((1-0.272),12/7.5)), 0.88f, 0.89f));
+            ahyaSC.add(new SizeClass(201, 800, (float) (1-Math.pow((1-0.125),12/7.5)), 0.77f, 0.77f));
+            ahyaSC.add(new SizeClass(800, 2000, (float) (1-Math.pow((1-0.0678),12/7.5)), 0.60f, 0.60f));
+            ahyaSC.add(new SizeClass(2000, 20000, (float) (1-Math.pow((1-0),12/7.5)), 0.41f, 0.41f));
+            
+            // 0-50, 50.0001-100, 100.0001-200, >200.
+            ArrayList<SizeClass> pdSC = new ArrayList<SizeClass>();
+            pdSC.add(new SizeClass(0, 50, (float) (1-Math.pow((1-0.3799),2)), 0.42f,    0.54f));
+            pdSC.add(new SizeClass(51, 100, (float) (1-Math.pow((1-0.1461),2)), 0.48f,  0.57f));
+            pdSC.add(new SizeClass(101, 200, (float) (1-Math.pow((1-0.0644),2)), 0.48f, 0.28f));
+            pdSC.add(new SizeClass(200, 20000, (float) (1-Math.pow((1-0.02),2)), 0.36f, 0.18f));
+            
+            addRow(new Object[]{"A Hya.", 4.23f, 0f, 2.55f, 0.00078f, 2.07f , 0.0014f ,4.46f ,0f     , ahyaSC});
+            addRow(new Object[]{"PD",     0.38f, 0f, 0.36f, 0f      , 1.04f ,0.0025f  ,0.6f,  0.0019f,pdSC});
             for (String string : columnTitles) {
                 addColumn(string);
             }
@@ -213,5 +227,57 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         }
         
     }
+    private class SizeClassTableCellEditor extends AbstractCellEditor 
+                                           implements TableCellEditor, ActionListener{ 
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -1579587255799355577L;
+        protected static final String EDIT = "edit";
+        private ArrayList<SizeClass> sizeClasses;
+        private JButton button;
+        private SizeClassEditor editor;
+        public SizeClassTableCellEditor(){ 
+            
+            button = new JButton();
+            button.setActionCommand(EDIT);
+            button.addActionListener(this);
+            button.setBorderPainted(false);
+            
+            editor = new SizeClassEditor(this);
+            
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return sizeClasses;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+            System.out.println("editting sc");
+            if(EDIT.equals(e.getActionCommand())) {
+                editor.pack();
+                editor.setVisible(true);
+                editor.setAlwaysOnTop(true);
+                fireEditingStopped();
+                
+            } else {
+                sizeClasses = editor.getSizeClasses();
+                editor.setVisible(false);
+            }
+            
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table,
+                Object value, boolean isSelected, int row, int column) {
+            // TODO Auto-generated method stub
+            sizeClasses = (ArrayList<SizeClass>) value;
+            editor.setSizeClasses(sizeClasses);
+            return button;
+        } 
+    } 
 }
 

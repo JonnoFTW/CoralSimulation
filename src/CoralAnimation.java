@@ -1,17 +1,13 @@
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.List;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -174,29 +170,11 @@ public class CoralAnimation extends Canvas {
     public int tick() {
         tick++;
         // merge any colonies who have neighbouring cells and of the same species
-        ArrayList<Pair<Integer,Integer>> toMerge = new ArrayList<Pair<Integer,Integer>>();
-        for (Entry<Integer, Colony> colony : colonies.entrySet()) {
-            for (Integer cell : colony.getValue().cells) {
-                Pair<Integer,Integer> xy = toXY(cell);
-                for(int i : getNeighbours(xy.x, xy.y)) {
-                    for (Entry<Integer, Colony> otherColony : colonies.entrySet()) {
-                        if(otherColony.getKey() != colony.getKey()
-                            && otherColony.getValue().species ==  colony.getValue().species
-                            && otherColony.getValue().cells.contains(i)) {
-                                toMerge.add(new Pair<Integer,Integer>(otherColony.getKey() , colony.getKey()));
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-        System.out.println("Merging: "+toMerge);
-        for (Pair<Integer, Integer> pair : toMerge) {
-            mergeColonies(pair.x, pair.y);
-        }
+        detectMerges();
+        // Iterate through each colony and either kill, grow or shrink
         for (Entry<Integer, Colony> colony : colonies.entrySet()) {
             boolean competing = false;
-            // Detect which colonies are competing
+            // Detect if this colony is competing
             for (Integer cell : colony.getValue().cells) {
                 Pair<Integer,Integer> xy = toXY(cell);
                 for(int i : getNeighbours(xy.x, xy.y)) {
@@ -219,37 +197,54 @@ public class CoralAnimation extends Canvas {
             System.out.println("Colony "+colonyNumber+" is competing: "+competing);
             float timeScaling = 12/12;
             
-            float mortality,shrinkage,growth;
+            float shrinkage,growth,growShrinkP;
             
             if(competing) {
-                mortality = s.getDieC(colonySize);
-                shrinkage = s.getShrinkC(colonySize);
-                growth    = s.getShrinkC(colonySize);
+                shrinkage  = s.getShrinkC(colonySize);
+                growth     = s.getShrinkC(colonySize);
+                growShrinkP = s.getGrowShrinkPC(colonySize);
             } else {
-                mortality = s.getDie(colonySize);
-                shrinkage = s.getShrink(colonySize);
-                growth    = s.getShrink(colonySize);
+                shrinkage   = s.getShrink(colonySize);
+                growth      = s.getShrink(colonySize);
+                growShrinkP = s.getGrowShrinkP(colonySize);
             }
-            if(mortality > rng.nextFloat()) {
+            if(s.getDie(colonySize) > rng.nextFloat()) {
                 System.out.println(s +" died");
                 killColony(colonyNumber);
                 continue;
             } else {
-                // Adjust the size of the colony
-             //    System.out.println("Colony "+colonyNumber+" is at size "+colonySize);
-                 newColonySize = colonySize * ( (s.getGrowC(colonySize)*timeScaling - s.getShrinkC(colonySize)*timeScaling));
-             //    System.out.println("New size: "+newColonySize);
-                 
-                // Grow out the colony until it reaches the new size
+                // Check if this colony will grow or shrink this period
+                if(growShrinkP > rng.nextFloat()) {
+                    // Grow the colony
+                } else {
+                    // Shrink the colony
+                    
+                }
             }
-          //  while(colonies.get(colonyNumber).cells.size() < newColonySize) {
-                // Add more cells
-                // Use a recursive grow after we've found 1 cell of the current colony,
-                // repeat growing until new size is met
-                // or if there is net shrinkage, kill cells
-        //    }
         } 
         return tick;
+    }
+    private void detectMerges() {
+        ArrayList<Pair<Integer,Integer>> toMerge = new ArrayList<Pair<Integer,Integer>>();
+        for (Entry<Integer, Colony> colony : colonies.entrySet()) {
+            for (Integer cell : colony.getValue().cells) {
+                Pair<Integer,Integer> xy = toXY(cell);
+                for(int i : getNeighbours(xy.x, xy.y)) {
+                    for (Entry<Integer, Colony> otherColony : colonies.entrySet()) {
+                        if(otherColony.getKey() != colony.getKey()
+                            && otherColony.getValue().species ==  colony.getValue().species
+                            && otherColony.getValue().cells.contains(i)) {
+                                toMerge.add(new Pair<Integer,Integer>(otherColony.getKey() , colony.getKey()));
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println("Merging: "+toMerge);
+        for (Pair<Integer, Integer> pair : toMerge) {
+            mergeColonies(pair.x, pair.y);
+        }
     }
     
     public int getTick() {

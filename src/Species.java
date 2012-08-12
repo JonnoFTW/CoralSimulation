@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.io.Serializable;
+import java.util.ArrayList;
 /**
  * @author Jonathan Mackenzie
  * 
@@ -16,42 +17,38 @@ public class Species implements Serializable{
 
     private static final long serialVersionUID = -6074195010790622156L;
     private Color color;
-    private float die, grow, shrink, dieC, growC, shrinkC, dieSD, growSD, shrinkSD, dieCSD, growCSD, shrinkCSD;
+    private float grow, shrink, growC, shrinkC,  growSD, shrinkSD, growCSD, shrinkCSD;
     private String name;
+    
+    // Size classes map a lower and upper bound to a mortality probability, and growth/shrink probability
+    private ArrayList<SizeClass> sizeClasses;
 
 
     /**
      * @param c the color of this species
-     * @param die the mortality rate of this species
      * @param grow the growth rate of this species
      * @param shrink the shrinkage rate of this species
-     * @param dieC the mortality rate of this species when in competition
      * @param growC the growth rate of this species when in competition
      * @param shrinkC the shrinkage rate of this species when in competition
      * @param name the name of this species
-     * @param dieSD the size dependent mortality rate of this species
      * @param growSD the size dependent growth rate
      * @param shrinkSD the size dependent shrinkage rate
-     * @param dieCSD the size dependent mortality rate when competinng
      * @param growCSD the size dependent growth rate when competing
      * @param shrinkCSD the size dependent shrinkage rate when competing
      */
-    public Species(Color c, float die, float grow, float shrink, float dieC,float growC, float shrinkC, String name,
-            float dieSD, float growSD, float shrinkSD, float dieCSD,float growCSD, float shrinkCSD ) {
+    public Species(Color c, float grow, float shrink, float growC, float shrinkC, String name,
+            float growSD, float shrinkSD, float growCSD, float shrinkCSD,  ArrayList<SizeClass> sizeClasses  ) {
         setColor(c);
-        this.die = die/100;
-        this.dieC = dieC/100;
         this.grow = grow;
         this.growC = growC;
         this.shrinkC = shrinkC;
         this.shrink = shrink;
-        this.dieSD = dieSD;
-        this.dieCSD = dieCSD;
         this.growSD = growSD;
         this.growCSD = growCSD;
         this.shrinkCSD = shrinkCSD;
         this.shrinkSD = shrinkSD;
         this.name = name;
+        this.sizeClasses = sizeClasses;
     }
 
     public String toString() {
@@ -65,7 +62,7 @@ public class Species implements Serializable{
      * @return
      */
     public String getReport(int maxNameSize) {
-        return String.format("%"+(maxNameSize)+"s | %f + %f | %f + %f | %f + %f | %f + %f | %f + %f | %f + %f %n", name,grow,growSD,growC,growCSD,shrink,shrinkSD,shrinkC,shrinkCSD,die,dieSD,dieC,dieCSD);
+        return String.format("%"+(maxNameSize)+"s | %f + %f | %f + %f | %f + %f | %f + %f %n", name,grow,growSD,growC,growCSD,shrink,shrinkSD,shrinkC,shrinkCSD);
     }
 
     /**
@@ -80,7 +77,11 @@ public class Species implements Serializable{
      * @return the mortality rate of this species
      */
     public Float getDie(int colonySize) {
-        return new Float(this.die+this.dieSD*colonySize);
+        for (SizeClass c : sizeClasses) {
+            if(c.in(colonySize))
+                return c.getMortality();
+        }
+        return null;
     }
     /**
      * @return the growth rate of this species
@@ -96,12 +97,6 @@ public class Species implements Serializable{
         return new Float(this.shrink+this.shrinkSD*colonySize);
     }
 
-    /**
-     * @return the the mortality rate of this species when in competition
-     */
-    public Float getDieC(int colonySize) {
-        return new Float(this.dieC+this.dieCSD*colonySize);
-    }
 
     /**
      * @return the growth rate of this species when in competition
@@ -111,6 +106,7 @@ public class Species implements Serializable{
     }
 
     /**
+     * @param colonySize the size of the colony
      * @return the shrinkage rate of this species when in competition
      */
     public Float getShrinkC(int colonySize) {
@@ -122,5 +118,32 @@ public class Species implements Serializable{
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * 
+     * @param colonySize the size of the colony
+     * @return the probability that a colony of this species of the specified size
+     *  will grow 
+     */
+    public float getGrowShrinkP(Integer colonySize) {
+        for (SizeClass c : sizeClasses) {
+            if(c.in(colonySize))
+                return c.getGrowShrinkP();
+        }
+        return 0;
+    }
+    /**
+     * 
+     * @param colonySize the size of the colony
+     * @return the probability that a colony of this species of the specified size
+     *  will grow when in competition
+     */
+    public float getGrowShrinkPC(Integer colonySize) {
+        for (SizeClass c : sizeClasses) {
+            if(c.in(colonySize))
+                return c.getGrowShrinkPC();
+        }
+        return 0;
     }
 }
