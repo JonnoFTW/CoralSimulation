@@ -63,23 +63,35 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 return new GroupableTableHeader(columnModel);
             }
         };
-        
-        tbl.setDefaultEditor(ArrayList.class, new SizeClassTableCellEditor());
+        tbl.getColumnModel().getColumn(11).setCellEditor(new SizeClassTableCellEditor());
+     //   tbl.setDefaultEditor(ArrayList.class, new SizeClassTableCellEditor());
         TableColumnModel cm = tbl.getColumnModel();
-        ColumnGroup growth = new ColumnGroup("Growth");
-        growth.add(cm.getColumn(1));
-        growth.add(cm.getColumn(2));
-        ColumnGroup growthC = new ColumnGroup("Growth (Competing)");
+        ColumnGroup growthAll = new ColumnGroup("Growth");
+        ColumnGroup growthC = new ColumnGroup("Competing");
+        ColumnGroup growthNC = new ColumnGroup("Non-competing");
+        growthAll.add(growthNC);
+        growthAll.add(growthC);
+        
+        growthNC.add(cm.getColumn(1));
+        growthNC.add(cm.getColumn(2));
+        
         growthC.add(cm.getColumn(3));
         growthC.add(cm.getColumn(4));
-        ColumnGroup shrink = new ColumnGroup("Shrinkage");
-        shrink.add(cm.getColumn(5));
-        shrink.add(cm.getColumn(6));
-        ColumnGroup  shrinkC = new ColumnGroup("Shrinkage(Competing)");
-        shrinkC.add(cm.getColumn(7));
+        growthAll.add(cm.getColumn(5));
+        
+        ColumnGroup shrinkAll = new ColumnGroup("Shrinkage");
+        
+        ColumnGroup shrinkNC = new ColumnGroup("Non-competing");
+        shrinkNC.add(cm.getColumn(6));
+        shrinkNC.add(cm.getColumn(7));
+        ColumnGroup  shrinkC = new ColumnGroup("Competing");
         shrinkC.add(cm.getColumn(8));
+        shrinkC.add(cm.getColumn(9));
+        shrinkAll.add(shrinkNC);
+        shrinkAll.add(shrinkC);
+        shrinkAll.add(cm.getColumn(10));
         GroupableTableHeader header = (GroupableTableHeader)tbl.getTableHeader();
-        for (ColumnGroup cg : new ColumnGroup[] {growth,growthC,shrink,shrinkC}) {
+        for (ColumnGroup cg : new ColumnGroup[] {growthAll,growthNC,growthC,shrinkAll,shrinkNC,shrinkC}) {
             header.addColumnGroup(cg);
         }
         
@@ -166,19 +178,21 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             if(filledIn == model.getColumnCount()) {
                 names++;
                 String name     = (String) model.getValueAt(i, 0);
-                float grow      = (Float) model.getValueAt(i, 1);
-                float growSD    = (Float) model.getValueAt(i, 2);                
-                float growC     = (Float) model.getValueAt(i, 3);
-                float growCSD   = (Float) model.getValueAt(i, 4);
-                float shrink    = (Float) model.getValueAt(i, 5);
-                float shrinkSD  = (Float) model.getValueAt(i, 6);
-                float shrinkC   = (Float) model.getValueAt(i, 7);
-                float shrinkCSD = (Float) model.getValueAt(i, 8);
-                ArrayList<SizeClass> sizeClasses = (ArrayList<SizeClass>) model.getValueAt(i, 9);
+                double grow      = (Double) model.getValueAt(i, 1);
+                double growSD    = (Double) model.getValueAt(i, 2);                
+                double growC     = (Double) model.getValueAt(i, 3);
+                double growCSD   = (Double) model.getValueAt(i, 4);
+                int   growTS    = (Integer) model.getValueAt(i, 5);
+                double shrink    = (Double) model.getValueAt(i, 6);
+                double shrinkSD  = (Double) model.getValueAt(i, 7);
+                double shrinkC   = (Double) model.getValueAt(i, 8);
+                double shrinkCSD = (Double) model.getValueAt(i, 9);
+                int   shrinkTS    = (Integer) model.getValueAt(i, 10);
+                ArrayList<SizeClass> sizeClasses = (ArrayList<SizeClass>) model.getValueAt(i, 11);
                 
-                
+                System.out.println(sizeClasses);
                 Species s = new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f),
-                        grow,shrink,growC,shrinkC, name,  growSD, shrinkSD, growCSD, shrinkCSD, sizeClasses);
+                        grow,shrink,growC,shrinkC, name,  growSD, shrinkSD, growCSD, shrinkCSD, sizeClasses,growTS, shrinkTS);
                 speciesList.add(s);
        //         System.out.println("Added "+s);
             }
@@ -190,27 +204,27 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     private class SpeciesTableModel extends DefaultTableModel {
         private static final long serialVersionUID = -246523524036828973L;
         //                                            Growth   Growth(c)Shrink   Shrink(c)
-        private final String[] columnTitles = {"Name","A","SD","A","SD","A","SD","A","SD","Size Classes"};
+        private final String[] columnTitles = {"Name","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Size Classes"};
         
         
         public SpeciesTableModel() {
             // These should really be serialised
             ArrayList<SizeClass> ahyaSC = new ArrayList<SizeClass>();
             //0-200, 200.0001-800, 800.0001-2000, >2000
-            ahyaSC.add(new SizeClass(0, 200, (float) (1-Math.pow((1-0.272),12/7.5)), 0.88f, 0.89f));
-            ahyaSC.add(new SizeClass(201, 800, (float) (1-Math.pow((1-0.125),12/7.5)), 0.77f, 0.77f));
-            ahyaSC.add(new SizeClass(800, 2000, (float) (1-Math.pow((1-0.0678),12/7.5)), 0.60f, 0.60f));
-            ahyaSC.add(new SizeClass(2000, 20000, (float) (1-Math.pow((1-0),12/7.5)), 0.41f, 0.41f));
+            ahyaSC.add(new SizeClass(0, 200,  (1-Math.pow((1-0.272),12/7.5)), 0.88, 0.89));
+            ahyaSC.add(new SizeClass(201, 800,  (1-Math.pow((1-0.125),12/7.5)), 0.77, 0.77));
+            ahyaSC.add(new SizeClass(800, 2000,  (1-Math.pow((1-0.0678),12/7.5)), 0.60, 0.60));
+            ahyaSC.add(new SizeClass(2000, Integer.MAX_VALUE,  (1-Math.pow((1-0),12/7.5)), 0.41, 0.41));
             
             // 0-50, 50.0001-100, 100.0001-200, >200.
             ArrayList<SizeClass> pdSC = new ArrayList<SizeClass>();
-            pdSC.add(new SizeClass(0, 50, (float) (1-Math.pow((1-0.3799),2)), 0.42f,    0.54f));
-            pdSC.add(new SizeClass(51, 100, (float) (1-Math.pow((1-0.1461),2)), 0.48f,  0.57f));
-            pdSC.add(new SizeClass(101, 200, (float) (1-Math.pow((1-0.0644),2)), 0.48f, 0.28f));
-            pdSC.add(new SizeClass(200, 20000, (float) (1-Math.pow((1-0.02),2)), 0.36f, 0.18f));
+            pdSC.add(new SizeClass(0, 50,  (1-Math.pow((1-0.3799),2)), 0.42,    0.54));
+            pdSC.add(new SizeClass(51, 100,  (1-Math.pow((1-0.1461),2)), 0.48,  0.57));
+            pdSC.add(new SizeClass(101, 200,  (1-Math.pow((1-0.0644),2)), 0.48, 0.28));
+            pdSC.add(new SizeClass(200, Integer.MAX_VALUE,  (1-Math.pow((1-0.02),2)), 0.36, 0.18));
             
-            addRow(new Object[]{"A Hya.", 4.23f, 0f, 2.55f, 0.00078f, 2.07f , 0.0014f ,4.46f ,0f     , ahyaSC});
-            addRow(new Object[]{"PD",     0.38f, 0f, 0.36f, 0f      , 1.04f ,0.0025f  ,0.6f,  0.0019f,pdSC});
+            addRow(new Object[]{"A Hya.", 4.23, 0d, 2.55, 0.00078,12, 2.07 , 0.0014 ,4.46 ,0d     ,12 , ahyaSC});
+            addRow(new Object[]{"PD",     0.38, 0d, 0.36, 0d     ,12, 1.04 , 0.0025 ,0.6  ,0.0019 ,12 , pdSC});
             for (String string : columnTitles) {
                 addColumn(string);
             }
@@ -255,17 +269,23 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // TODO Auto-generated method stub
             System.out.println("editting sc");
             if(EDIT.equals(e.getActionCommand())) {
-                editor.pack();
+                System.out.println("Editing");
                 editor.setVisible(true);
+                editor.setSizeClasses(sizeClasses);
                 editor.setAlwaysOnTop(true);
                 fireEditingStopped();
                 
             } else {
-                sizeClasses = editor.getSizeClasses();
-                editor.setVisible(false);
+                System.out.println("Save was pressed");
+                if(editor.validateInput()) {
+                    sizeClasses = editor.getSizeClasses();
+                    editor.setVisible(false);
+                    model.fireTableDataChanged();
+                } else {
+                    // user needs to correct input
+                }
             }
             
         }
@@ -275,7 +295,6 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 Object value, boolean isSelected, int row, int column) {
             // TODO Auto-generated method stub
             sizeClasses = (ArrayList<SizeClass>) value;
-            editor.setSizeClasses(sizeClasses);
             return button;
         } 
     } 

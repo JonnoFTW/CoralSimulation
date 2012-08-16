@@ -28,7 +28,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import javax.swing.JButton;
-import javax.swing.SwingConstants;
 import javax.swing.JCheckBox;
 
 
@@ -55,14 +54,7 @@ public class SidePanel extends JPanel {
     private ArrayList<JFormattedTextField> inputsArray;
     private JRadioButton animateButton;
     private JRadioButton rdbtnSkip;
-    private JLabel lblStepmonths;
     private JSeparator separator;
-    private JLabel lblMortality;
-    private JFormattedTextField mortalityStepInput;
-    private JLabel lblShrinkage;
-    private JFormattedTextField shrinkageStepInput;
-    private JSeparator separator_1;
-    private JLabel lblTimeScalingmonths;
     public JCheckBox chckbxShowColNo;
     public SidePanel(final Simulation s) {
         setToolTipText("Step inputs here");
@@ -107,35 +99,6 @@ public class SidePanel extends JPanel {
         
         separator = new JSeparator();
         add(separator, "cell 0 6 3 1,growx");
-        
-        lblTimeScalingmonths = new JLabel("Time Scaling (months)");
-        lblTimeScalingmonths.setHorizontalAlignment(SwingConstants.CENTER);
-        add(lblTimeScalingmonths, "cell 0 7 3 1,alignx center");
-        
-        lblStepmonths = new JLabel("Growth");
-        add(lblStepmonths, "cell 0 8");
-        
-        JFormattedTextField growthStepInput = new JFormattedTextField();
-        growthStepInput.setText("12");
-        growthStepInput.setToolTipText("Months for growth");
-        add(growthStepInput, "cell 2 8,growx");
-        
-        lblMortality = new JLabel("Mortality");
-        add(lblMortality, "cell 0 9");
-        
-        mortalityStepInput = new JFormattedTextField();
-        mortalityStepInput.setText("12");
-        add(mortalityStepInput, "cell 2 9,growx");
-        
-        lblShrinkage = new JLabel("Shrinkage");
-        add(lblShrinkage, "cell 0 10");
-        
-        shrinkageStepInput = new JFormattedTextField();
-        shrinkageStepInput.setText("12");
-        add(shrinkageStepInput, "cell 2 10,growx");
-        
-        separator_1 = new JSeparator();
-        add(separator_1, "cell 0 12 3 1,growx");
         
         lblIteration = new JLabel("Iteration: 0/"+iterationsInput.getValue());
         add(lblIteration, "cell 2 16,alignx left");
@@ -227,9 +190,6 @@ public class SidePanel extends JPanel {
         inputsArray.add(iterationsInput);
         inputsArray.add(columnsInput);
         inputsArray.add(rowsInput);
-        inputsArray.add(growthStepInput);
-        inputsArray.add(shrinkageStepInput);
-        inputsArray.add(mortalityStepInput);
         
         chckbxShowColNo = new JCheckBox("Show col. no.");
         chckbxShowColNo.setSelected(true);

@@ -8,6 +8,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -68,7 +69,7 @@ public class CoralAnimation extends Canvas {
                     removeCell(p.x, p.y, cell.x);
                 } else {
                     notes.append("Marking cell at: x="+p.x+" y="+p.y+" as "+sim.sp.getSelectedSpecies()+ ", colony no. "+colCount).append(LINE_SEP);
-                    addCell(p.x,p.y, sim.sp.getSelectedSpecies(),++colCount) ;
+                    addCell(p.x,p.y, sim.sp.getSelectedSpecies(),++colCount,colonies) ;
                     
                 }
                 repaint();
@@ -83,15 +84,21 @@ public class CoralAnimation extends Canvas {
         return null;
     }
     private Pair<Integer,Integer> getXY(MouseEvent e) {
-        int x = (int) (e.getX()/(getWidth()/sim.sp.getRows()));
-        int y = (int) (e.getY()/(getHeight()/sim.sp.getColumns()));
+        int x =  e.getX()/(getWidth()/sim.sp.getRows());
+        int y =  e.getY()/(getHeight()/sim.sp.getColumns());
         return new Pair<Integer,Integer>(x,y);
     }
-    private void addCell(int x, int y, Species s, int colonyNo) {
-        if(!colonies.containsKey(colonyNo)) {
-            colonies.put(colonyNo, new Colony(s));
+    private void addCell(int z, Colony col) {
+        col.cells.add(z);
+    }
+    private void addCell(int x, int y, Species s, int colonyNo, HashMap<Integer, Colony> col) {
+        if(!col.containsKey(colonyNo)) {
+            col.put(colonyNo, new Colony(s));
         }
-        colonies.get(colonyNo).cells.add(x*columns +y);
+        col.get(colonyNo).cells.add(x*columns +y);
+    }
+    private void addCell(Integer z, Species s, int colonyNo, HashMap<Integer, Colony> col) {
+        addCell(z/rows,z%rows, s,  colonyNo, col);
     }
     /**
      * Merge 2 colony counts, as selected when performing a step
@@ -171,7 +178,11 @@ public class CoralAnimation extends Canvas {
         tick++;
         // merge any colonies who have neighbouring cells and of the same species
         detectMerges();
+        // Kill any colonies that might die, before we start competing and growing/shrinking
+        detectDeaths();
+        HashMap<Integer, Colony> newColonies = new HashMap<Integer, Colony>();
         // Iterate through each colony and either kill, grow or shrink
+
         for (Entry<Integer, Colony> colony : colonies.entrySet()) {
             boolean competing = false;
             // Detect if this colony is competing
@@ -190,14 +201,14 @@ public class CoralAnimation extends Canvas {
                 }
             }
             
-            Float newColonySize = 0f;
+            double newColonySize = 0f;
             Species s = colony.getValue().species;
-            Integer colonySize = colony.getValue().cells.size();
+            HashSet<Integer> cells = colony.getValue().cells;
+            Integer colonySize = cells.size();
             Integer colonyNumber = colony.getKey();
             System.out.println("Colony "+colonyNumber+" is competing: "+competing);
-            float timeScaling = 12/12;
             
-            float shrinkage,growth,growShrinkP;
+            double shrinkage,growth,growShrinkP;
             
             if(competing) {
                 shrinkage  = s.getShrinkC(colonySize);
@@ -208,21 +219,48 @@ public class CoralAnimation extends Canvas {
                 growth      = s.getShrink(colonySize);
                 growShrinkP = s.getGrowShrinkP(colonySize);
             }
-            if(s.getDie(colonySize) > rng.nextFloat()) {
-                System.out.println(s +" died");
-                killColony(colonyNumber);
-                continue;
+            Colony newColony = new Colony(s);
+            // Check if this colony will grow or shrink this period
+            if(growShrinkP > rng.nextFloat()) {
+                // Grow the colony
+               newColonySize = growth*colonySize;
             } else {
-                // Check if this colony will grow or shrink this period
-                if(growShrinkP > rng.nextFloat()) {
-                    // Grow the colony
-                } else {
-                    // Shrink the colony
-                    
+                // Shrink the colony
+                newColonySize = shrinkage*colonySize;
+            }
+            System.out.println(colonyNumber +" grew/shrank to "+newColonySize +" from "+colonySize);
+            for (Integer c : colony.getValue().cells) {
+                if(newColonySize > colonySize)
+                    addCell(c,newColony);
+                int[] neighbours = getNeighbours(c);
+                ArrayList<Integer> inColony = new ArrayList<Integer>(neighbours.length);
+                int blank = 0;
+                for (int n : neighbours) {
+
+                    if(cells.contains(n)) {
+                        inColony.add(n);
+                    } else {
+                        
+                    }
                 }
             }
+            newColonies.put(colonyNumber, newColony);
         } 
+        colonies = newColonies;
         return tick;
+    }
+    private void detectDeaths() {
+        ArrayList<Integer> toKill = new ArrayList<Integer>();
+        for (Entry<Integer, Colony> colony : colonies.entrySet()) {
+            Colony c = colony.getValue();
+            if(c.species.getDie(c.cells.size()) > rng.nextFloat()) {
+                System.out.println("Colony: "+colony.getKey()+" "+c.species +" died");
+                toKill.add(colony.getKey());
+            }
+        }
+        for (Integer i : toKill) {
+           killColony(i);
+        }
     }
     private void detectMerges() {
         ArrayList<Pair<Integer,Integer>> toMerge = new ArrayList<Pair<Integer,Integer>>();
@@ -267,7 +305,9 @@ public class CoralAnimation extends Canvas {
         repaint();
         colCount = 0;
     }
-    
+    private int[] getNeighbours(int z) {
+        return getNeighbours(z/rows,z%columns);
+    }
     private int[] getNeighbours(int x, int y) {
         int ip = (((x+1)%columns)+columns)%columns;
         int im = (((x-1)%columns)+columns)%columns;

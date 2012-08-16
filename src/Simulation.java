@@ -109,7 +109,7 @@ public class Simulation extends JPanel {
         //      /images
         String name = System.getProperty("user.home");
         for (String i : new String[]{"logs","species","images"}) {
-            if(new File(name+"/CoralSim/"+i).mkdirs());    
+            if(new File(name+"/CoralSim/"+i).mkdirs())  
                 System.out.println("Created "+name+"/CoralSim/"+i);
         }
         

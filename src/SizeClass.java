@@ -5,21 +5,21 @@
  */
 public class SizeClass {
 
-    private float mortality, growshrinkP, growshrinkPC;
+    private double mortality, growshrinkP, growshrinkPC;
     
     /**
      * @param min
      * @param max
-     * @param mort
-     * @param gsp
-     * @param gspc
+     * @param mortality the mortality as a percentage between 0 and 1
+     * @param growShrinkP
+     * @param growShrinkPC
      */
-    public SizeClass(int min, int max, float mort, float gsp, float gspc) {
+    public SizeClass(int min, int max, double mortality, double growShrinkP, double growShrinkPC) {
         this.min = min;
         this.max = max;
-        this.mortality = mort;
-        this.growshrinkP = gsp;
-        this.growshrinkPC = gspc;
+        this.mortality = mortality;
+        this.growshrinkP = growShrinkP;
+        this.growshrinkPC = growShrinkPC;
     }
     /**
      * @param colSize
@@ -34,23 +34,23 @@ public class SizeClass {
     /**
      * @return the probability of a species in this size class dieing
      */
-    public float getMortality(){
+    public double getMortality(){
         return mortality;
     }
     /**
      * @return the probability of a species in this size class growing when not in competition
      */
-    public float getGrowShrinkP() {
+    public double getGrowShrinkP() {
         return growshrinkP;
     }
     /**
      * @return the probability of a species in this size class growing when in competition
      */
-    public float getGrowShrinkPC() {
+    public double getGrowShrinkPC() {
         return growshrinkPC;
     }
     public String toString() {
-        return String.format("(%d,%d)",min,max);
+        return String.format("[%d,%d: %f, %f, %f]",min,max, mortality, growshrinkP, growshrinkPC);
     }
     
     private int max, min;

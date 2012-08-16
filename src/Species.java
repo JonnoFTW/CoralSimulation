@@ -17,7 +17,7 @@ public class Species implements Serializable{
 
     private static final long serialVersionUID = -6074195010790622156L;
     private Color color;
-    private float grow, shrink, growC, shrinkC,  growSD, shrinkSD, growCSD, shrinkCSD;
+    private double grow, shrink, growC, shrinkC,  growSD, shrinkSD, growCSD, shrinkCSD,  growTS, shrinkTS;
     private String name;
     
     // Size classes map a lower and upper bound to a mortality probability, and growth/shrink probability
@@ -35,9 +35,11 @@ public class Species implements Serializable{
      * @param shrinkSD the size dependent shrinkage rate
      * @param growCSD the size dependent growth rate when competing
      * @param shrinkCSD the size dependent shrinkage rate when competing
+     * @param shrinkTS  the shrinkage time scaling
+     * @param growTS  the growth timescaling
      */
-    public Species(Color c, float grow, float shrink, float growC, float shrinkC, String name,
-            float growSD, float shrinkSD, float growCSD, float shrinkCSD,  ArrayList<SizeClass> sizeClasses  ) {
+    public Species(Color c, double grow, double shrink, double growC, double shrinkC, String name,
+            double growSD, double shrinkSD, double growCSD, double shrinkCSD,  ArrayList<SizeClass> sizeClasses, int growTS, int shrinkTS  ) {
         setColor(c);
         this.grow = grow;
         this.growC = growC;
@@ -49,6 +51,8 @@ public class Species implements Serializable{
         this.shrinkSD = shrinkSD;
         this.name = name;
         this.sizeClasses = sizeClasses;
+        this.growTS = growTS/12d;
+        this.shrinkTS = shrinkTS/12d;
     }
 
     public String toString() {
@@ -76,41 +80,41 @@ public class Species implements Serializable{
      * @param colonySize 
      * @return the mortality rate of this species
      */
-    public Float getDie(int colonySize) {
+    public double getDie(int colonySize) {
         for (SizeClass c : sizeClasses) {
             if(c.in(colonySize))
                 return c.getMortality();
         }
-        return null;
+        return 0;
     }
     /**
      * @return the growth rate of this species
      */
-    public Float getGrow(int colonySize) {
-        return new Float(this.grow+this.growSD*colonySize);
+    public double getGrow(int colonySize) {
+        return (this.grow+this.growSD*colonySize)*growTS;
     }
 
     /**
      * @return the shrinkage rate of this species
      */
-    public Float getShrink(int colonySize) {
-        return new Float(this.shrink+this.shrinkSD*colonySize);
+    public double getShrink(int colonySize) {
+        return (this.shrink+this.shrinkSD*colonySize)*shrinkTS;
     }
 
 
     /**
      * @return the growth rate of this species when in competition
      */
-    public Float getGrowC(int colonySize) {
-        return new Float(this.growC+this.growCSD*colonySize);
+    public double getGrowC(int colonySize) {
+        return (this.growC+this.growCSD*colonySize)*growTS;
     }
 
     /**
      * @param colonySize the size of the colony
      * @return the shrinkage rate of this species when in competition
      */
-    public Float getShrinkC(int colonySize) {
-        return new Float(this.shrinkC + this.shrinkCSD * colonySize*colonySize);
+    public double getShrinkC(int colonySize) {
+        return (this.shrinkC + this.shrinkCSD * colonySize*colonySize)*shrinkTS;
     }
 
     /**
@@ -126,7 +130,7 @@ public class Species implements Serializable{
      * @return the probability that a colony of this species of the specified size
      *  will grow 
      */
-    public float getGrowShrinkP(Integer colonySize) {
+    public double getGrowShrinkP(Integer colonySize) {
         for (SizeClass c : sizeClasses) {
             if(c.in(colonySize))
                 return c.getGrowShrinkP();
@@ -139,7 +143,7 @@ public class Species implements Serializable{
      * @return the probability that a colony of this species of the specified size
      *  will grow when in competition
      */
-    public float getGrowShrinkPC(Integer colonySize) {
+    public double getGrowShrinkPC(Integer colonySize) {
         for (SizeClass c : sizeClasses) {
             if(c.in(colonySize))
                 return c.getGrowShrinkPC();
