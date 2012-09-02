@@ -9,5 +9,7 @@ public class Pair<T,V> {
     public String toString() {
         return String.format("(%s,%s)", x,y);
     }
-    
+    public boolean equals(Pair<T,V> p) {
+        return (p.x == x && p.y == y) || (p.x == y && p.y == x);
+    }
 }

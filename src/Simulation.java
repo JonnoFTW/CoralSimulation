@@ -11,6 +11,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 
 public class Simulation extends JPanel {
@@ -40,11 +42,23 @@ public class Simulation extends JPanel {
         coralSim = new CoralAnimation(this);
         simPanel.add(coralSim, BorderLayout.CENTER);
         specSetup = new SpeciesSetup(sp);
-        JTabbedPane tabbedPane = new JTabbedPane();
+        final JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setPreferredSize(new Dimension(1102,702));
         tabbedPane.addTab("Simulation", simPanel);
         tabbedPane.addTab("Species Setup", specSetup);
+        final LogPanel logPanel = new LogPanel(getLogDir());
+        tabbedPane.addTab("Logs", logPanel);
 
+        tabbedPane.addChangeListener(new ChangeListener() {
+            
+            @Override
+            public void stateChanged(ChangeEvent event) {
+                // Refresh the log list when we select that panel
+                if(tabbedPane.getSelectedIndex() == 2) {
+                        logPanel.refresh();
+                }
+            }
+        });
         window.add(tabbedPane);
         
     }

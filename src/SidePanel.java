@@ -3,6 +3,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
@@ -26,7 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 
@@ -56,6 +56,7 @@ public class SidePanel extends JPanel {
     private JRadioButton rdbtnSkip;
     private JSeparator separator;
     public JCheckBox chckbxShowColNo;
+    private JLabel lblSize;
     public SidePanel(final Simulation s) {
         setToolTipText("Step inputs here");
         this.s = s;
@@ -87,18 +88,21 @@ public class SidePanel extends JPanel {
         add(lblRows, "cell 0 1");
         
         rowsInput = new JFormattedTextField(fmt);
-        rowsInput.setValue(10);
+        rowsInput.setValue(100);
         add(rowsInput, "cell 2 1,growx");
         
         JLabel lblColumns = new JLabel("Columns");
         add(lblColumns, "cell 0 2");
         
         columnsInput = new JFormattedTextField(fmt);
-        columnsInput.setValue(10);
+        columnsInput.setValue(100);
         add(columnsInput, "cell 2 2,growx");
         
         separator = new JSeparator();
         add(separator, "cell 0 6 3 1,growx");
+        
+        lblSize = new JLabel("Size: ");
+        add(lblSize, "cell 2 12");
         
         lblIteration = new JLabel("Iteration: 0/"+iterationsInput.getValue());
         add(lblIteration, "cell 2 16,alignx left");
@@ -194,6 +198,14 @@ public class SidePanel extends JPanel {
         chckbxShowColNo = new JCheckBox("Show col. no.");
         chckbxShowColNo.setSelected(true);
         add(chckbxShowColNo, "cell 2 4");
+        chckbxShowColNo.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                // TODO Auto-generated method stub
+                s.coralSim.repaint();
+            }
+        });
         try {
             for (JFormattedTextField i : inputsArray) {
                 i.commitEdit();
@@ -224,12 +236,13 @@ public class SidePanel extends JPanel {
             System.out.println("Adding to list: "+s);
             speciesSelected.addItem(s);
         }
+        s.coralSim.setSpecies(ss);
         resetSim();
     }
     public Species getSelectedSpecies() {
         return (Species) speciesSelected.getSelectedItem();
     }
-    public void setXY(Pair<Integer, Integer> p,Species s,int colony) {
+    public void setXY(Pair<Integer, Integer> p,Species s,int colony, int size) {
         lblXY.setText(p.x+", "+p.y);
         if(colony != 0) 
             lblColony.setText("Colony: "+colony );
@@ -239,6 +252,10 @@ public class SidePanel extends JPanel {
             lblSpecies_1.setText("Species:");
         else
             lblSpecies_1.setText("Species: "+s);
+        if(size == 0) 
+            lblSize.setText("Size: ");
+        else
+            lblSize.setText("Size: "+size);
     }
     private void resetSim() {
         s.coralSim.reset();
@@ -282,11 +299,13 @@ public class SidePanel extends JPanel {
         protected String doInBackground() throws Exception {
             // TODO Auto-generated method stub
             try {
-                String outputName = s.getLogDir()+(new SimpleDateFormat("ddMMyyyy-HHmmss'.log'").format(Calendar.getInstance().getTime()));
+                Date now = Calendar.getInstance().getTime();
+                String outputName = s.getLogDir()+(new SimpleDateFormat("ddMMyyyy-HHmmss'.log'").format(now));
                 outFile = new BufferedWriter(new FileWriter(outputName));
                 int maxNameSize = "Name".length();
                 StringBuilder speciesReport = new StringBuilder();
-                
+                StringBuilder sizeClassReport = new StringBuilder("Size Class Report"+LINE_SEP);
+                sizeClassReport.append("Min,Max, Mortality, GrowShrinkP, GrowShrinkCP").append(LINE_SEP);
                 System.out.println("Writing to: "+outputName);
                 int num = speciesSelected.getItemCount();
                 for (int i = 0;i<num;i++) {
@@ -296,10 +315,15 @@ public class SidePanel extends JPanel {
                 for (int i = 0;i<num;i++) {
                     Species spec =  (Species)speciesSelected.getItemAt(i);
                     speciesReport.append(spec.getReport(maxNameSize));
+                    sizeClassReport.append(spec.getName()).append(LINE_SEP).append(spec.sizeClassReport()).append(LINE_SEP);
                 }
-                speciesReport.insert(0,String.format("\n%"+(maxNameSize)+"s | %19s | %19s | %19s | %19s | %19s | %19s%n","Name", "Growth","Growth (c)", "Shrinkage", "Shrinkage (c)","Mortality","Mortality (c)"));
-                System.out.println(speciesReport);
+                speciesReport.insert(0,String.format("%"+(maxNameSize)+"s | %19s | %19s | %19s | %19s | %s%n","Name", "Growth","Growth (c)", "Shrinkage", "Shrinkage (c)","Recruits"));
+                speciesReport.insert(0,"Species Report"+LINE_SEP);
+              //  System.out.println(speciesReport);
+              //  System.out.println(sizeClassReport);
+                outFile.write("Running Simulation at "+(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(now))+LINE_SEP);
                 outFile.write(speciesReport.toString());
+                outFile.write(sizeClassReport.toString());
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();   

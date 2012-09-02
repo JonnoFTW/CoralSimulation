@@ -63,7 +63,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 return new GroupableTableHeader(columnModel);
             }
         };
-        tbl.getColumnModel().getColumn(11).setCellEditor(new SizeClassTableCellEditor());
+        tbl.getColumnModel().getColumn(12).setCellEditor(new SizeClassTableCellEditor());
      //   tbl.setDefaultEditor(ArrayList.class, new SizeClassTableCellEditor());
         TableColumnModel cm = tbl.getColumnModel();
         ColumnGroup growthAll = new ColumnGroup("Growth");
@@ -177,22 +177,22 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
       //      System.out.println("User filled in "+filledIn+" columns");
             if(filledIn == model.getColumnCount()) {
                 names++;
-                String name     = (String) model.getValueAt(i, 0);
+                String name      = (String) model.getValueAt(i, 0);
                 double grow      = (Double) model.getValueAt(i, 1);
                 double growSD    = (Double) model.getValueAt(i, 2);                
                 double growC     = (Double) model.getValueAt(i, 3);
                 double growCSD   = (Double) model.getValueAt(i, 4);
-                int   growTS    = (Integer) model.getValueAt(i, 5);
+                int   growTS     = (Integer) model.getValueAt(i, 5);
                 double shrink    = (Double) model.getValueAt(i, 6);
                 double shrinkSD  = (Double) model.getValueAt(i, 7);
                 double shrinkC   = (Double) model.getValueAt(i, 8);
                 double shrinkCSD = (Double) model.getValueAt(i, 9);
-                int   shrinkTS    = (Integer) model.getValueAt(i, 10);
-                ArrayList<SizeClass> sizeClasses = (ArrayList<SizeClass>) model.getValueAt(i, 11);
+                int   shrinkTS   = (Integer) model.getValueAt(i, 10);
+                int   recruits   = (Integer) model.getValueAt(i, 11);
+                ArrayList<SizeClass> sizeClasses = (ArrayList<SizeClass>) model.getValueAt(i, 12);
                 
-                System.out.println(sizeClasses);
                 Species s = new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f),
-                        grow,shrink,growC,shrinkC, name,  growSD, shrinkSD, growCSD, shrinkCSD, sizeClasses,growTS, shrinkTS);
+                        grow,shrink,growC,shrinkC, name,  growSD, shrinkSD, growCSD, shrinkCSD, sizeClasses,growTS, shrinkTS, recruits);
                 speciesList.add(s);
        //         System.out.println("Added "+s);
             }
@@ -204,7 +204,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     private class SpeciesTableModel extends DefaultTableModel {
         private static final long serialVersionUID = -246523524036828973L;
         //                                            Growth   Growth(c)Shrink   Shrink(c)
-        private final String[] columnTitles = {"Name","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Size Classes"};
+        private final String[] columnTitles = {"Name","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Recruits","Size Classes"};
         
         
         public SpeciesTableModel() {
@@ -223,8 +223,8 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             pdSC.add(new SizeClass(101, 200,  (1-Math.pow((1-0.0644),2)), 0.48, 0.28));
             pdSC.add(new SizeClass(200, Integer.MAX_VALUE,  (1-Math.pow((1-0.02),2)), 0.36, 0.18));
             
-            addRow(new Object[]{"A Hya.", 4.23, 0d, 2.55, 0.00078,12, 2.07 , 0.0014 ,4.46 ,0d     ,12 , ahyaSC});
-            addRow(new Object[]{"PD",     0.38, 0d, 0.36, 0d     ,12, 1.04 , 0.0025 ,0.6  ,0.0019 ,12 , pdSC});
+            addRow(new Object[]{"A Hya.", 4.23, 0d, 2.55, 0.00078,15, 2.07 , 0.0014 ,4.46 ,0d     ,12 ,1, ahyaSC});
+            addRow(new Object[]{"PD",     0.38, 0d, 0.36, 0d     ,6, 1.04 , 0.0025 ,0.6  ,0.0019 ,12 ,1, pdSC});
             for (String string : columnTitles) {
                 addColumn(string);
             }
@@ -264,25 +264,29 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
 
         @Override
         public Object getCellEditorValue() {
-            return sizeClasses;
+         //   System.out.println("Get Cell editor value was called, using "+sizeClasses);
+            return editor.getSizeClasses();
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("editting sc");
+            
+            
             if(EDIT.equals(e.getActionCommand())) {
-                System.out.println("Editing");
+                // User clicked the cell, bring up the editor
+            //    System.out.println("editting sc");
                 editor.setVisible(true);
                 editor.setSizeClasses(sizeClasses);
                 editor.setAlwaysOnTop(true);
-                fireEditingStopped();
                 
             } else {
-                System.out.println("Save was pressed");
+           //     System.out.println("Save button of dialogue was pressed");
                 if(editor.validateInput()) {
                     sizeClasses = editor.getSizeClasses();
                     editor.setVisible(false);
-                    model.fireTableDataChanged();
+               //     System.out.println("size classes are: "+sizeClasses);
+
+                    fireEditingStopped();
                 } else {
                     // user needs to correct input
                 }
@@ -293,7 +297,6 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         @Override
         public Component getTableCellEditorComponent(JTable table,
                 Object value, boolean isSelected, int row, int column) {
-            // TODO Auto-generated method stub
             sizeClasses = (ArrayList<SizeClass>) value;
             return button;
         } 

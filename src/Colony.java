@@ -6,8 +6,9 @@ import java.util.HashSet;
  *
  */
 public class Colony {
-    public HashSet<Integer> cells = new HashSet<Integer>();
-    public Species species;
+    private HashSet<Integer> cells = new HashSet<Integer>();
+    private Species species;
+    private  double remainingGrowth;
     public Colony(Species s) {
         this.species = s;
     }
@@ -17,5 +18,17 @@ public class Colony {
             positions.add(new Pair<Integer,Integer>(i/rows,i%columns));
         }
         return positions;
+    }
+    public HashSet<Integer> getCells() {
+        return cells;
+    }
+    public Species getSpecies() {
+        return species;
+    }
+    public double getRemainingGrowth() {
+        return remainingGrowth;
+    }
+    public void setRemainingGrowth(double gr) {
+        remainingGrowth = gr;
     }
 }

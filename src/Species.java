@@ -19,7 +19,7 @@ public class Species implements Serializable{
     private Color color;
     private double grow, shrink, growC, shrinkC,  growSD, shrinkSD, growCSD, shrinkCSD,  growTS, shrinkTS;
     private String name;
-    
+    private int recruits;
     // Size classes map a lower and upper bound to a mortality probability, and growth/shrink probability
     private ArrayList<SizeClass> sizeClasses;
 
@@ -37,9 +37,10 @@ public class Species implements Serializable{
      * @param shrinkCSD the size dependent shrinkage rate when competing
      * @param shrinkTS  the shrinkage time scaling
      * @param growTS  the growth timescaling
+     * @param recruits the number of recruits for this species each iteration
      */
     public Species(Color c, double grow, double shrink, double growC, double shrinkC, String name,
-            double growSD, double shrinkSD, double growCSD, double shrinkCSD,  ArrayList<SizeClass> sizeClasses, int growTS, int shrinkTS  ) {
+            double growSD, double shrinkSD, double growCSD, double shrinkCSD,  ArrayList<SizeClass> sizeClasses, int growTS, int shrinkTS, int recruits  ) {
         setColor(c);
         this.grow = grow;
         this.growC = growC;
@@ -53,12 +54,16 @@ public class Species implements Serializable{
         this.sizeClasses = sizeClasses;
         this.growTS = growTS/12d;
         this.shrinkTS = shrinkTS/12d;
+        this.recruits = recruits;
     }
 
     public String toString() {
         return name;
     }
  
+    public int getRecruits() {
+        return recruits;
+    }
     private void setColor(Color c) {
         this.color = c;
     }
@@ -66,9 +71,16 @@ public class Species implements Serializable{
      * @return
      */
     public String getReport(int maxNameSize) {
-        return String.format("%"+(maxNameSize)+"s | %f + %f | %f + %f | %f + %f | %f + %f %n", name,grow,growSD,growC,growCSD,shrink,shrinkSD,shrinkC,shrinkCSD);
+        return String.format("%"+(maxNameSize)+"s | %f + %f | %f + %f | %f + %f | %f + %f | %d %n", name,grow,growSD,growC,growCSD,shrink,shrinkSD,shrinkC,shrinkCSD,recruits);
     }
 
+    public String sizeClassReport() {
+        StringBuilder sb = new StringBuilder();
+        for (SizeClass sc : sizeClasses) {
+            sb.append(sc.toString()).append("\n");
+        }
+        return sb.toString();
+    }
     /**
      * @return the color of this species to use in the image representation
      */
