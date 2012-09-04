@@ -2,6 +2,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
@@ -11,6 +12,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 
 
 public class SizeClassEditor extends JDialog {
@@ -21,7 +23,7 @@ public class SizeClassEditor extends JDialog {
     private static final long serialVersionUID = 6909421034651884335L;
     private JTable table;
     private SizeClassTableModel model;
-    public SizeClassEditor(ActionListener lstn){
+    public SizeClassEditor(ActionListener saveListener, ActionListener cancelListener){
         setTitle("Edit Size Classes");
         model = new SizeClassTableModel();
         model.addTableModelListener(new TableModelListener() {
@@ -58,8 +60,19 @@ public class SizeClassEditor extends JDialog {
         
         JButton btnSave = new JButton("Save");
         btn_panel.add(btnSave);
-        btnSave.addActionListener(lstn);
+        
+        JButton btnCancel = new JButton("Cancel");
+        btnCancel.addActionListener(cancelListener);
+        btn_panel.add(btnCancel);
+        btnSave.addActionListener(saveListener);
         pack();
+    }
+    
+    public static SizeClassEditor createSizeClassEditor(Component c,
+            ActionListener okListener, 
+            ActionListener cancelListener) {
+                return new SizeClassEditor(okListener, cancelListener);
+        
     }
     public void addRow(SizeClass sc) {
         model.addRow(new Object[] {sc.getMin(),sc.getMax(),sc.getMortality(),sc.getGrowShrinkP(),sc.getGrowShrinkPC()});
@@ -68,6 +81,10 @@ public class SizeClassEditor extends JDialog {
         model.addRow(new Object[]  {});
     }
     public void setSizeClasses(ArrayList<SizeClass>  sc) {
+        if(sc == null) {
+            model.addRow(new Object[] {0,50,0d,0d,0d,0d});
+            return;
+        }
         model.setRowCount(0);
         for (SizeClass sizeClass : sc) {
             addRow(sizeClass);
@@ -76,18 +93,33 @@ public class SizeClassEditor extends JDialog {
     }
     public boolean validateInput() {
         boolean valid = true;
-        for(int i = 0; i < model.getRowCount(); i++) {
-            // Should probably set background colours for the cell
-            valid &= (Integer) table.getValueAt(i, 0) < (Integer) table.getValueAt(i, 1);
-            for(int j = 2; j < 4; j++) 
-                valid &= ((Double) table.getValueAt(i, j)) < 1 && ((Double) table.getValueAt(i, j)) >= 0;
-        }
+        //try {
+            for(int i = 0; i < model.getRowCount(); i++) {
+                
+                // Should probably set background colours for the cell
+                System.out.println("validating row "+i);
+                if(table.getValueAt(i, 0) == null) {
+                    continue;
+                }
+                valid &= (Integer) table.getValueAt(i, 0) < (Integer) table.getValueAt(i, 1);
+                for(int j = 2; j < 4; j++) 
+                    valid &= ((Double) table.getValueAt(i, j)) < 1 && ((Double) table.getValueAt(i, j)) >= 0;
+            }
+       /* } catch (NullPointerException e) {
+            System.err.println(e);
+            JOptionPane.showMessageDialog(this, "An error was encountered in validation");
+            return false;
+        }*/
         return valid;
     }
     
     public ArrayList<SizeClass> getSizeClasses() {
          ArrayList<SizeClass> scs = new ArrayList<SizeClass>();
+         System.out.println("Gettting size classes");
          for (int i = 0; i < table.getRowCount() -1; i++) {
+             if(table.getValueAt(i, 0) == null) {
+                 continue;
+             }
             scs.add(new SizeClass(
                   (Integer)  table.getValueAt(i, 0),
                   (Integer)  table.getValueAt(i, 1),
@@ -104,7 +136,6 @@ public class SizeClassEditor extends JDialog {
         private static final long serialVersionUID = 6771833776664184864L;
         private final Object[] columns = new Object[] {"Min","Max","Mortality","growshrinkp","growshrinkp (c)"}; 
         public SizeClassTableModel() {
-            // TODO Auto-generated constructor stub
             for (Object i : columns) {
                 addColumn(i);
             }

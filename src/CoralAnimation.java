@@ -155,7 +155,6 @@ public class CoralAnimation extends Canvas {
      * @param colonyNumber the colony to kill
      */
     private void killColony(int colonyNumber) {
-      //  notes.append("Colony ").append(colonyNumber).append(" died").append(LINE_SEP);
         colonies.remove(colonyNumber);
     }
     /**
@@ -253,7 +252,7 @@ public class CoralAnimation extends Canvas {
                 }
             }
             
-            double newColonySize = 0f;
+            double newColonySize = 0d;
             Species s = colony.getValue().getSpecies();
             HashSet<Integer> cells = colony.getValue().getCells();
             Integer colonySize = cells.size();

@@ -43,7 +43,7 @@ public class SidePanel extends JPanel {
     final private String LINE_SEP = System.getProperty("line.separator");
     private JComboBox speciesSelected;
     private JLabel lblIteration;
-    private Simulation s;
+    public Simulation s;
     final private JProgressBar progressBar;
     private JFormattedTextField rowsInput, columnsInput, iterationsInput;
     private JLabel lblColony;

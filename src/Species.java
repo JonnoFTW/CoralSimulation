@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Vector;
 /**
  * @author Jonathan Mackenzie
  * 
@@ -161,5 +162,25 @@ public class Species implements Serializable{
                 return c.getGrowShrinkPC();
         }
         return 0;
+    }
+
+    public Object[] getArray() {
+        //,"Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant",
+        //"Size Dependent","Constant","Size Dependent","Time Scale","Recruits","Size Classes"}
+        return new Object[]{
+                getName(),
+                grow,
+                growSD,
+                growC,
+                growCSD,
+                12d/growTS,
+                shrink,
+                shrinkSD,
+                shrinkC,
+                shrinkCSD,
+                12d/shrinkTS,
+                recruits,
+                sizeClasses
+        };
     }
 }

@@ -36,7 +36,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
      */
     private static final long serialVersionUID = -599805443131295797L;
     /**
-     * forms for setting up species, should load from file on creation
+     * A table for setting up species, should load from file on creation
      */
     DefaultTableModel model = new SpeciesTableModel();
     private ArrayList<Species> speciesList = new ArrayList<Species>();
@@ -45,6 +45,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     private Random rng;
     public SpeciesSetup(SidePanel sp) {
         this.sp = sp;
+        
         rng = new Random();
         // Load in the default species
       //  importSpecies("default.dat");
@@ -117,14 +118,14 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     }
     public void importSpecies() {
         // Use the default species file
-        importSpecies("default.dat");
+        importSpecies(sp.s.getSpeciesDir()+"default.dat");
     }
     public void importSpecies(String fileName) {
         try {
                 ObjectInputStream objIn = new  ObjectInputStream(new FileInputStream(fileName));
                 speciesList = (ArrayList<Species>) objIn.readObject();
                 objIn.close();
-                model.getDataVector().clear();
+                setSpeciesList(speciesList);
                 
             }
          catch (FileNotFoundException e) {
@@ -137,6 +138,14 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         }
         catch(ClassNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Species Class not found!");
+        }
+        
+    }
+
+    private void setSpeciesList(ArrayList<Species> speciesList) {
+        model.setRowCount(0);
+        for (Species s : speciesList) {
+            model.addRow(s.getArray());
         }
         
     }
@@ -154,7 +163,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     private void updateSpeciesSelection() {
         sp.setSpeciesSelections(speciesList);      
     }
-    public void addEmptyRow() {
+    private void addEmptyRow() {
         model.addRow(new Object[]  {""});
     }
     @Override
@@ -258,14 +267,15 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             button.addActionListener(this);
             button.setBorderPainted(false);
             
-            editor = new SizeClassEditor(this);
-            
+            editor = SizeClassEditor.createSizeClassEditor(button, this, null);
+            System.out.println("Making sce");
         }
 
         @Override
         public Object getCellEditorValue() {
-         //   System.out.println("Get Cell editor value was called, using "+sizeClasses);
-            return editor.getSizeClasses();
+            System.out.println("Get Cell editor value was called, using "+sizeClasses);
+         //   return editor.getSizeClasses();
+            return sizeClasses;
         }
 
         @Override
@@ -278,6 +288,8 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 editor.setVisible(true);
                 editor.setSizeClasses(sizeClasses);
                 editor.setAlwaysOnTop(true);
+
+                
                 
             } else {
            //     System.out.println("Save button of dialogue was pressed");
@@ -285,8 +297,8 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                     sizeClasses = editor.getSizeClasses();
                     editor.setVisible(false);
                //     System.out.println("size classes are: "+sizeClasses);
-
                     fireEditingStopped();
+                    
                 } else {
                     // user needs to correct input
                 }

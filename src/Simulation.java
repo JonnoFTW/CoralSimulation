@@ -1,5 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -74,6 +76,28 @@ public class Simulation extends JPanel {
         JMenu m = new JMenu("Help");
         JMenuItem manualItem = new JMenuItem("User Manual");
         JMenuItem aboutItem = new JMenuItem("About");
+        ActionListener menuClicked = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Show the help dialogue
+                if (e.getActionCommand().equals("About")) {
+                    JOptionPane
+                            .showMessageDialog(
+                                    null,
+                                    "<html><h2>Jonathan Mackenzie</h2><h3>Coral Simulation</h3><h4>&copy;2012, <a href='mailto:jonmac1@gmail.com'>jonmac1@gmail.com</a></h4>"
+                                            + "<p style=\"font-size:12pt; text-align:justify\"> "
+                                            + "This program is distributed in the hope that it will <br/>"
+                                            + "be useful, but WITHOUT ANY WARRANTY;<br/>"
+                                            + "without even the implied warranty of MERCHANTABILITY<br/>"
+                                            + "or FITNESS FOR A PARTICULAR PURPOSE.</p> </html>",
+                                    "About Coral Simulation",
+                                    JOptionPane.INFORMATION_MESSAGE,
+                                    null);
+                }
+                
+            }
+        };
+        aboutItem.addActionListener(menuClicked);
         m.add(manualItem);
         m.add(aboutItem);
         return m;
