@@ -266,6 +266,8 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             button.setActionCommand(EDIT);
             button.addActionListener(this);
             button.setBorderPainted(false);
+            button.setBackground(Color.white);
+            
             
             editor = SizeClassEditor.createSizeClassEditor(button, this, null);
             System.out.println("Making sce");
@@ -301,6 +303,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                     
                 } else {
                     // user needs to correct input
+                    JOptionPane.showMessageDialog(editor, "You have An error in your size classes", "Error In Size Class Configuration", JOptionPane.ERROR_MESSAGE);
                 }
             }
             

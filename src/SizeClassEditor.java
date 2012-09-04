@@ -1,8 +1,9 @@
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
@@ -25,6 +26,11 @@ public class SizeClassEditor extends JDialog {
     private SizeClassTableModel model;
     public SizeClassEditor(ActionListener saveListener, ActionListener cancelListener){
         setTitle("Edit Size Classes");
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+             
+            }
+        });
         model = new SizeClassTableModel();
         model.addTableModelListener(new TableModelListener() {
             
@@ -32,18 +38,31 @@ public class SizeClassEditor extends JDialog {
             public void tableChanged(TableModelEvent arg0) {
                 int filledRows = 0;
                 for (int i = 0; i < model.getRowCount(); i++) {
-                    int filledIn =0;
+                    int filledColumns =0;
                     for (int j = 0; j < model.getColumnCount(); j++) {
                         // Check that each column of the row is filled out
                         if(model.getValueAt(i, j) != null) {
-                            filledIn++;
+                            filledColumns++;
                         }
                     }
-                    if(filledIn == model.getColumnCount())
+                    if(filledColumns == model.getColumnCount())
                         filledRows++;
                 }
-                if(filledRows == model.getRowCount()-1 )
-                    addEmptyRow();
+                if(filledRows == model.getRowCount() ) {
+                    model.setRowCount(model.getRowCount()+1);
+                }
+                // Remove any empty rows
+                for (int i = 0; i < model.getRowCount() -1; i++) {
+                    int empty = 0;
+                    for (int j = 0; j < model.getColumnCount(); j++) {
+                        // Check for empty rows
+                        if(model.getValueAt(i, j) == null) {
+                            empty++;
+                        }
+                    }
+                    if(empty == model.getColumnCount())
+                        model.removeRow(i);
+                }
                 
             }
         });
@@ -81,11 +100,12 @@ public class SizeClassEditor extends JDialog {
         model.addRow(new Object[]  {});
     }
     public void setSizeClasses(ArrayList<SizeClass>  sc) {
+        model.setRowCount(0);
         if(sc == null) {
             model.addRow(new Object[] {0,50,0d,0d,0d,0d});
             return;
         }
-        model.setRowCount(0);
+        
         for (SizeClass sizeClass : sc) {
             addRow(sizeClass);
         }
@@ -127,6 +147,9 @@ public class SizeClassEditor extends JDialog {
                   (Double)  table.getValueAt(i, 3),
                   (Double)  table.getValueAt(i, 4)));
         }
+         if(scs.size() == 0) {
+             return null;
+         }
          return scs;
     }
     private class SizeClassTableModel  extends DefaultTableModel{
