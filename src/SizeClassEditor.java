@@ -16,6 +16,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 
 
+/**
+ * @author Jonathan
+ *
+ */
 public class SizeClassEditor extends JDialog {
 
     /**
@@ -24,6 +28,10 @@ public class SizeClassEditor extends JDialog {
     private static final long serialVersionUID = 6909421034651884335L;
     private JTable table;
     private SizeClassTableModel model;
+    /**
+     * @param saveListener
+     * @param cancelListener
+     */
     public SizeClassEditor(ActionListener saveListener, ActionListener cancelListener){
         setTitle("Edit Size Classes");
         addWindowListener(new WindowAdapter() {
@@ -87,18 +95,33 @@ public class SizeClassEditor extends JDialog {
         pack();
     }
     
+    /**
+     * @param c
+     * @param okListener
+     * @param cancelListener
+     * @return
+     */
     public static SizeClassEditor createSizeClassEditor(Component c,
             ActionListener okListener, 
             ActionListener cancelListener) {
                 return new SizeClassEditor(okListener, cancelListener);
         
     }
+    /**
+     * @param sc
+     */
     public void addRow(SizeClass sc) {
         model.addRow(new Object[] {sc.getMin(),sc.getMax(),sc.getMortality(),sc.getGrowShrinkP(),sc.getGrowShrinkPC()});
     }
+    /**
+     * 
+     */
     private void addEmptyRow() {
         model.addRow(new Object[]  {});
     }
+    /**
+     * @param sc
+     */
     public void setSizeClasses(ArrayList<SizeClass>  sc) {
         model.setRowCount(0);
         if(sc == null) {
@@ -111,28 +134,33 @@ public class SizeClassEditor extends JDialog {
         }
         addEmptyRow();
     }
+    /**
+     * @return true if the input is a valid set of size classes
+     */
     public boolean validateInput() {
         boolean valid = true;
-        //try {
-            for(int i = 0; i < model.getRowCount(); i++) {
-                
-                // Should probably set background colours for the cell
-                System.out.println("validating row "+i);
-                if(table.getValueAt(i, 0) == null) {
-                    continue;
-                }
-                valid &= (Integer) table.getValueAt(i, 0) < (Integer) table.getValueAt(i, 1);
-                for(int j = 2; j < 4; j++) 
-                    valid &= ((Double) table.getValueAt(i, j)) < 1 && ((Double) table.getValueAt(i, j)) >= 0;
+        for(int i = 0; i < model.getRowCount(); i++) {
+            
+            // Should probably set background colours for the cells that are invalid
+            if(table.getValueAt(i, 0) == null) {
+                continue;
             }
-       /* } catch (NullPointerException e) {
-            System.err.println(e);
-            JOptionPane.showMessageDialog(this, "An error was encountered in validation");
-            return false;
-        }*/
+            boolean minMax = (Integer) table.getValueAt(i, 0) < (Integer) table.getValueAt(i, 1);
+            if(minMax) {
+                // Set the pair that is invalid to have a red background color
+            }
+            valid &= minMax;
+            if(table.getValueAt(i+1, 0) != null)
+                valid &= (Integer) table.getValueAt(i,1) == (Integer) table.getValueAt(i+1, 0);
+            for(int j = 2; j <= 4; j++) 
+                valid &= ((Double) table.getValueAt(i, j)) < 1 && ((Double) table.getValueAt(i, j)) >= 0;
+        }
         return valid;
     }
     
+    /**
+     * @return
+     */
     public ArrayList<SizeClass> getSizeClasses() {
          ArrayList<SizeClass> scs = new ArrayList<SizeClass>();
          System.out.println("Gettting size classes");
@@ -152,6 +180,10 @@ public class SizeClassEditor extends JDialog {
          }
          return scs;
     }
+    /**
+     * @author Jonathan
+     * The table model for sizeclasstable.
+     */
     private class SizeClassTableModel  extends DefaultTableModel{
         /**
          * 

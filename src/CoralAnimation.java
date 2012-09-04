@@ -463,7 +463,7 @@ public class CoralAnimation extends Canvas {
         return getNeighbours(z/rows,z%columns);
     }
     /**
-     * Get the neighbours of a given cell
+     * Get the neighbours of a given cell in a toroidal fashion
      * @param x the x coordinate of the cell
      * @param y the y coordinate of the cell
      * @return an array of cell indexes

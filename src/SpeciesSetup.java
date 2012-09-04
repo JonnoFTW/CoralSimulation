@@ -30,19 +30,21 @@ import javax.swing.table.TableColumnModel;
 import TableHeader.ColumnGroup;
 import TableHeader.GroupableTableHeader;
 
+/**
+ * @author Jonathan
+ * A table for setting up species, should load from file on creation
+ *
+ */
 public class SpeciesSetup extends JPanel implements TableModelListener {
-    /**
-     * 
-     */
     private static final long serialVersionUID = -599805443131295797L;
-    /**
-     * A table for setting up species, should load from file on creation
-     */
     DefaultTableModel model = new SpeciesTableModel();
     private ArrayList<Species> speciesList = new ArrayList<Species>();
     private JTable tbl;
     private SidePanel sp;
     private Random rng;
+    /**
+     * @param sp
+     */
     public SpeciesSetup(SidePanel sp) {
         this.sp = sp;
         
@@ -101,6 +103,9 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         add(new JLabel("Warning: modifying the species in any way will clear the simulation"),BorderLayout.SOUTH);      
     }
 
+    /**
+     * @param fileName
+     */
     public void exportSpecies(String fileName) {
         // Serialize the species list to a file
         try {
@@ -116,10 +121,16 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         
         
     }
+    /**
+     * 
+     */
     public void importSpecies() {
         // Use the default species file
         importSpecies(sp.s.getSpeciesDir()+"default.dat");
     }
+    /**
+     * @param fileName
+     */
     public void importSpecies(String fileName) {
         try {
                 ObjectInputStream objIn = new  ObjectInputStream(new FileInputStream(fileName));
@@ -142,6 +153,9 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         
     }
 
+    /**
+     * @param speciesList
+     */
     private void setSpeciesList(ArrayList<Species> speciesList) {
         model.setRowCount(0);
         for (Species s : speciesList) {
@@ -150,9 +164,15 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         
     }
 
+    /**
+     * @return
+     */
     public ArrayList<Species> getSpecies()  {
         return speciesList;
     }
+    /**
+     * @return
+     */
     public ArrayList<String> getNames() {
         ArrayList<String> names = new ArrayList<String>();
         for (int i = 0; i < model.getRowCount(); i++) {
@@ -160,12 +180,21 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         }
         return names;
     }
+    /**
+     * 
+     */
     private void updateSpeciesSelection() {
         sp.setSpeciesSelections(speciesList);      
     }
+    /**
+     * 
+     */
     private void addEmptyRow() {
         model.addRow(new Object[]  {""});
     }
+    /* (non-Javadoc)
+     * @see javax.swing.event.TableModelListener#tableChanged(javax.swing.event.TableModelEvent)
+     */
     @Override
     public void tableChanged(TableModelEvent e) {
         // Save the species to the file, update the list on the sidepanel        
@@ -210,12 +239,19 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             addEmptyRow();
         updateSpeciesSelection();
     }
+    /**
+     * @author Jonathan
+     *
+     */
     private class SpeciesTableModel extends DefaultTableModel {
         private static final long serialVersionUID = -246523524036828973L;
         //                                            Growth   Growth(c)Shrink   Shrink(c)
         private final String[] columnTitles = {"Name","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Recruits","Size Classes"};
         
         
+        /**
+         * 
+         */
         public SpeciesTableModel() {
             // These should really be serialised
             ArrayList<SizeClass> ahyaSC = new ArrayList<SizeClass>();
@@ -250,6 +286,10 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         }
         
     }
+    /**
+     * @author Jonathan
+     *
+     */
     private class SizeClassTableCellEditor extends AbstractCellEditor 
                                            implements TableCellEditor, ActionListener{ 
         /**
@@ -268,38 +308,27 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             button.setBorderPainted(false);
             button.setBackground(Color.white);
             
-            
             editor = SizeClassEditor.createSizeClassEditor(button, this, null);
-            System.out.println("Making sce");
         }
 
         @Override
         public Object getCellEditorValue() {
-            System.out.println("Get Cell editor value was called, using "+sizeClasses);
-         //   return editor.getSizeClasses();
             return sizeClasses;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            
-            
             if(EDIT.equals(e.getActionCommand())) {
                 // User clicked the cell, bring up the editor
-            //    System.out.println("editting sc");
                 editor.setVisible(true);
                 editor.setSizeClasses(sizeClasses);
                 editor.setAlwaysOnTop(true);
-
-                
-                
             } else {
-           //     System.out.println("Save button of dialogue was pressed");
                 if(editor.validateInput()) {
                     sizeClasses = editor.getSizeClasses();
                     editor.setVisible(false);
-               //     System.out.println("size classes are: "+sizeClasses);
-                    fireEditingStopped();
+                    fireEditingStopped(); // This being here causes the cellrenderer to show a button, it not being here
+                                          // causes data changes to not be saved
                     
                 } else {
                     // user needs to correct input

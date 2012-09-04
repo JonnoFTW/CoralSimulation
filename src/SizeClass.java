@@ -1,7 +1,8 @@
 
 /**
  * @author Jonathan
- *
+ * A sizeclass for a coral species. Has a maximum and minumum bound for the mortality and probablity of
+ * growth/shrinkage when in isolation and competition.
  */
 public class SizeClass {
 
@@ -22,8 +23,8 @@ public class SizeClass {
         this.growshrinkPC = growShrinkPC;
     }
     /**
-     * @param colSize
-     * @return
+     * @param colSize the size of the colony 
+     * @return true if the provided colonysize falls within this sizeclass's range [min,max)
      */
     public boolean in(int colSize) {
         if(min <= colSize && max > colSize)

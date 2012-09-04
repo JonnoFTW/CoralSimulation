@@ -31,6 +31,10 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 
 
+/**
+ * @author Jonathan
+ * The sidepanel for configuring the simulation
+ */
 public class SidePanel extends JPanel {
 
     /**
@@ -38,7 +42,7 @@ public class SidePanel extends JPanel {
      */
     private static final long serialVersionUID = 3781284619710031148L;
     /**
-     * Create the panel.
+     * Create the panel and the components inside it.
      */
     final private String LINE_SEP = System.getProperty("line.separator");
     private JComboBox speciesSelected;
@@ -217,31 +221,59 @@ public class SidePanel extends JPanel {
         }
 
     }
+    /**
+     * I'm not sure if this even used
+     * @param t
+     */
     public void tick(int t) {
         // Increase the tick count
         lblIteration.setText("Iteration: "+s.coralSim.getTick()+"/"+iterationsInput.getValue());
         progressBar.setValue(t);
     }
+    /**
+     * Gets the number of rows specified
+     * @return the number of rows for the simulation to use
+     */
     public int getRows() {
         Long r =  (Long) rowsInput.getValue();
         return r.intValue();
     }
+    /**
+     * Gets the number of columns specified in the configuation
+     * @return the number of columns
+     */
     public int getColumns() {
         Long l = (Long) columnsInput.getValue();
         return l.intValue();
     }
+    
+    /**
+     * Update the species available in the species selection menu 
+     * @param ss the arraylist of species to use the in the menu
+     */
     public void setSpeciesSelections(ArrayList<Species> ss) {   
         speciesSelected.removeAllItems();
         for (Species s : ss) {
-            System.out.println("Adding to list: "+s);
+            //System.out.println("Adding to list: "+s);
             speciesSelected.addItem(s);
         }
         s.coralSim.setSpecies(ss);
         resetSim();
     }
+    
+    /**
+     * @return the species that is currently selected in the dropdown menu
+     */
     public Species getSelectedSpecies() {
         return (Species) speciesSelected.getSelectedItem();
     }
+    /**
+     * Updates the labels to display information about the cell currently being moused over
+     * @param p the (X,Y)  location that is being pointed to on the grid
+     * @param s The species of the focal cell
+     * @param colony The colony number of the focal cell
+     * @param size the size of the focal cell
+     */
     public void setXY(Pair<Integer, Integer> p,Species s,int colony, int size) {
         lblXY.setText(p.x+", "+p.y);
         if(colony != 0) 
@@ -257,29 +289,51 @@ public class SidePanel extends JPanel {
         else
             lblSize.setText("Size: "+size);
     }
+    /**
+     * Reset the simulation 
+     */
     private void resetSim() {
         s.coralSim.reset();
         tick(s.coralSim.getTick());
     }
 
+    /**
+     *  Run the simulation
+     */
     private void runSimulation() {
         if(smltnRnr.isDone())
             smltnRnr = new SimulationRunner();
         smltnRnr.execute();
     }
+    
+    /**
+     * Stop the simulation 
+     */
     private void stopSimulation() {
         smltnRnr.cancel(true);
     }
+    /**
+     * Enable inputs after the simulation has finished
+     */
     private void enableInputs() {
         for (JFormattedTextField i : inputsArray) {
             i.setEnabled(true);
         }
     }
+    /**
+     *Disable inputs
+     */
     private void disableInputs() {
         for (JFormattedTextField i : inputsArray) {
             i.setEnabled(false);
         }
     }
+    
+    /**
+     * @author Jonathan
+     * Run the simulation in it's own swingworker thread.
+     * Updates the progress bar accordingly.
+     */
     class SimulationRunner extends SwingWorker<String, Object> {
         BufferedWriter outFile;
         public SimulationRunner() {

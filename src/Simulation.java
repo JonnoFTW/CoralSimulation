@@ -17,6 +17,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 
+/**
+ * @author Jonathan
+ * The main simulation window 
+ */
 public class Simulation extends JPanel {
     
     /**
@@ -64,6 +68,9 @@ public class Simulation extends JPanel {
         window.add(tabbedPane);
         
     }
+    /**
+     * @return
+     */
     private JMenuBar makeMenuBar() {
         // TODO Auto-generated method stub
         JMenuBar mb = new JMenuBar();
@@ -71,6 +78,9 @@ public class Simulation extends JPanel {
         mb.add(makeHelpMenu());
         return mb;
     }
+    /**
+     * @return
+     */
     private JMenu makeHelpMenu() {
         // TODO Auto-generated method stub
         JMenu m = new JMenu("Help");
@@ -102,6 +112,9 @@ public class Simulation extends JPanel {
         m.add(aboutItem);
         return m;
     }
+    /**
+     * @return
+     */
     private JMenu makeFileMenu() {
         // TODO Auto-generated method stub
         JMenu m = new JMenu("File");
@@ -134,17 +147,23 @@ public class Simulation extends JPanel {
         }
     }
     
+    /**
+     * 
+     */
     private void saveDialogue() {
         // TODO Auto-generated method stub
         // Save the image?
         // Save species ?
     }
+    /**
+     * Set up the directories that the application will use,
+     * Organises the folders in the user's home directory as such:
+     *  ~/CoralSim
+     *         /logs
+     *         /species
+     *         /images
+     */
     private void createDir() {
-        // Create a file in users home dir,
-        // ~/CoralSim
-        //      /logs
-        //      /species
-        //      /images
         String name = System.getProperty("user.home");
         for (String i : new String[]{"logs","species","images"}) {
             if(new File(name+"/CoralSim/"+i).mkdirs())  
@@ -152,16 +171,29 @@ public class Simulation extends JPanel {
         }
         
     }
+    /**
+     * @param sub
+     * @return
+     */
     private String getDataDir(String sub) {
         String sep = System.getProperty("file.separator");
         return System.getProperty("user.home")+sep+"CoralSim"+sep+sub+sep;
     }
+    /**
+     * @return
+     */
     public String getLogDir() {
         return getDataDir("logs");
     }
+    /**
+     * @return
+     */
     public String getSpeciesDir() {
         return getDataDir("species");
     }
+    /**
+     * @return
+     */
     public String getImageDir() {
         return getDataDir("images");
     }

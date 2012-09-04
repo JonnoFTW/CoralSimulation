@@ -61,9 +61,15 @@ public class Species implements Serializable{
         return name;
     }
  
+    /**
+     * @return
+     */
     public int getRecruits() {
         return recruits;
     }
+    /**
+     * @param c
+     */
     private void setColor(Color c) {
         this.color = c;
     }
@@ -74,6 +80,9 @@ public class Species implements Serializable{
         return String.format("%"+(maxNameSize)+"s | %f + %f | %f + %f | %f + %f | %f + %f | %d %n", name,grow,growSD,growC,growCSD,shrink,shrinkSD,shrinkC,shrinkCSD,recruits);
     }
 
+    /**
+     * @return
+     */
     public String sizeClassReport() {
         StringBuilder sb = new StringBuilder();
         for (SizeClass sc : sizeClasses) {
@@ -163,6 +172,9 @@ public class Species implements Serializable{
         return 0;
     }
 
+    /**
+     * @return
+     */
     public Object[] getArray() {
         //,"Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant",
         //"Size Dependent","Constant","Size Dependent","Time Scale","Recruits","Size Classes"}

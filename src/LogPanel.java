@@ -27,6 +27,9 @@ public class LogPanel extends JPanel {
     private File dir;
     private JList list;
     private JTextArea text;
+    /**
+     * @param string
+     */
     public LogPanel(String string) {
         setLayout(new BorderLayout(0, 0));
         dir = new File(string);
@@ -67,6 +70,9 @@ public class LogPanel extends JPanel {
 
 
     
+    /**
+     * 
+     */
     private void loadLogList() {
         File[] files = dir.listFiles();
 
@@ -83,10 +89,17 @@ public class LogPanel extends JPanel {
     public void refresh() {
         loadLogList();
     }
+    /**
+     * @author Jonathan
+     *
+     */
     private static class FileListCellRenderer extends DefaultListCellRenderer  {
 
         private static final long serialVersionUID = 1L;
 
+        /* (non-Javadoc)
+         * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
+         */
         @Override
         public Component getListCellRendererComponent(JList list, Object value,
                 int index, boolean isSelected, boolean cellHasFocus) {
