@@ -19,16 +19,17 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 
+/**
+ * @author Jonathan
+ * A panel to view logs in a specified folder
+ */
 public class LogPanel extends JPanel {
-    /**
-     * 
-     */
     private static final long serialVersionUID = -1665608884566053419L;
     private File dir;
     private JList list;
     private JTextArea text;
     /**
-     * @param string
+     * @param string the directory to look for log files in
      */
     public LogPanel(String string) {
         setLayout(new BorderLayout(0, 0));
@@ -51,10 +52,8 @@ public class LogPanel extends JPanel {
                     text.read(log, "File contents");
                     log.close();
                 } catch (FileNotFoundException e1) {
-                    // TODO Auto-generated catch block
                     text.setText(e1.toString());
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
                     text.setText(e1.toString());
                 }
             }
@@ -71,7 +70,8 @@ public class LogPanel extends JPanel {
 
     
     /**
-     * 
+     * Load the files from the log directory into the list
+     * so that they can be viewed
      */
     private void loadLogList() {
         File[] files = dir.listFiles();
@@ -91,7 +91,7 @@ public class LogPanel extends JPanel {
     }
     /**
      * @author Jonathan
-     *
+     * A cell renderer for the JList that only shows file names insteaf of their full path
      */
     private static class FileListCellRenderer extends DefaultListCellRenderer  {
 

@@ -50,7 +50,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         
         rng = new Random();
         // Load in the default species
-      //  importSpecies("default.dat");
+       // importSpecies("default.dat");
         setLayout(new BorderLayout());
       
         
@@ -103,49 +103,46 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         add(new JLabel("Warning: modifying the species in any way will clear the simulation"),BorderLayout.SOUTH);      
     }
 
+    
     /**
-     * @param fileName
+     * Export the species list to a file so we can load it next time
+     * @param fileName the filename to serialise the species arraylist to
      */
     public void exportSpecies(String fileName) {
         // Serialize the species list to a file
         try {
             ObjectOutputStream objOut= new ObjectOutputStream(new FileOutputStream(new File(fileName)));
-            for (Species s : speciesList) {
-                objOut.writeObject(s);
-            }
+            objOut.writeObject(speciesList);
             objOut.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        
-        
     }
     /**
-     * 
+     * Import the default species "default.dat" from the species directory
      */
     public void importSpecies() {
         // Use the default species file
         importSpecies(sp.s.getSpeciesDir()+"default.dat");
     }
     /**
-     * @param fileName
+     * Import a species file from the given file name
+     * @param fileName the file name to load the species from
      */
     public void importSpecies(String fileName) {
         try {
                 ObjectInputStream objIn = new  ObjectInputStream(new FileInputStream(fileName));
+                // 
                 speciesList = (ArrayList<Species>) objIn.readObject();
                 objIn.close();
                 setSpeciesList(speciesList);
-                
             }
          catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
-          //  JOptionPane.showMessageDialog(this, "Error loading species file!");
+            JOptionPane.showMessageDialog(this, "Error loading species file! "+e.getMessage());
         }
         catch(IOException e) {
-            JOptionPane.showMessageDialog(this, "IOException: "+e);
+            JOptionPane.showMessageDialog(this, "IOException: "+e.getMessage());
         }
         catch(ClassNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Species Class not found!");
@@ -232,6 +229,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 Species s = new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f),
                         grow,shrink,growC,shrinkC, name,  growSD, shrinkSD, growCSD, shrinkCSD, sizeClasses,growTS, shrinkTS, recruits);
                 speciesList.add(s);
+                exportSpecies(sp.s.getSpeciesDir()+"default.dat");
        //         System.out.println("Added "+s);
             }
         }
@@ -257,15 +255,15 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             ArrayList<SizeClass> ahyaSC = new ArrayList<SizeClass>();
             //0-200, 200.0001-800, 800.0001-2000, >2000
             ahyaSC.add(new SizeClass(0, 200,  (1-Math.pow((1-0.272),12/7.5)), 0.88, 0.89));
-            ahyaSC.add(new SizeClass(201, 800,  (1-Math.pow((1-0.125),12/7.5)), 0.77, 0.77));
+            ahyaSC.add(new SizeClass(200, 800,  (1-Math.pow((1-0.125),12/7.5)), 0.77, 0.77));
             ahyaSC.add(new SizeClass(800, 2000,  (1-Math.pow((1-0.0678),12/7.5)), 0.60, 0.60));
             ahyaSC.add(new SizeClass(2000, Integer.MAX_VALUE,  (1-Math.pow((1-0),12/7.5)), 0.41, 0.41));
             
             // 0-50, 50.0001-100, 100.0001-200, >200.
             ArrayList<SizeClass> pdSC = new ArrayList<SizeClass>();
             pdSC.add(new SizeClass(0, 50,  (1-Math.pow((1-0.3799),2)), 0.42,    0.54));
-            pdSC.add(new SizeClass(51, 100,  (1-Math.pow((1-0.1461),2)), 0.48,  0.57));
-            pdSC.add(new SizeClass(101, 200,  (1-Math.pow((1-0.0644),2)), 0.48, 0.28));
+            pdSC.add(new SizeClass(50, 100,  (1-Math.pow((1-0.1461),2)), 0.48,  0.57));
+            pdSC.add(new SizeClass(100, 200,  (1-Math.pow((1-0.0644),2)), 0.48, 0.28));
             pdSC.add(new SizeClass(200, Integer.MAX_VALUE,  (1-Math.pow((1-0.02),2)), 0.36, 0.18));
             
             addRow(new Object[]{"A Hya.", 4.23, 0d, 2.55, 0.00078,15, 2.07 , 0.0014 ,4.46 ,0d     ,12 ,1, ahyaSC});
@@ -308,7 +306,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             button.setBorderPainted(false);
             button.setBackground(Color.white);
             
-            editor = SizeClassEditor.createSizeClassEditor(button, this, null);
+            editor = SizeClassEditor.createSizeClassEditor(button, this);
         }
 
         @Override

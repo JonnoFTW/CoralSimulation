@@ -1,10 +1,12 @@
+import java.io.Serializable;
+
 
 /**
  * @author Jonathan
  * A sizeclass for a coral species. Has a maximum and minumum bound for the mortality and probablity of
  * growth/shrinkage when in isolation and competition.
  */
-public class SizeClass {
+public class SizeClass implements Serializable{
 
     private double mortality, growshrinkP, growshrinkPC;
     

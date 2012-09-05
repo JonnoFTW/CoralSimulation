@@ -69,22 +69,23 @@ public class Simulation extends JPanel {
         
     }
     /**
-     * @return
+     * @return the menu bar
      */
     private JMenuBar makeMenuBar() {
-        // TODO Auto-generated method stub
+        // Make the menu bar
         JMenuBar mb = new JMenuBar();
         mb.add(makeFileMenu());
         mb.add(makeHelpMenu());
         return mb;
     }
     /**
-     * @return
+     * Generate a help menu
+     * @return the JMenu of a help menu
      */
     private JMenu makeHelpMenu() {
-        // TODO Auto-generated method stub
+        // Make a help menu
         JMenu m = new JMenu("Help");
-        JMenuItem manualItem = new JMenuItem("User Manual");
+    //    JMenuItem manualItem = new JMenuItem("User Manual"); // I doubt you need a user manual to operate this application
         JMenuItem aboutItem = new JMenuItem("About");
         ActionListener menuClicked = new ActionListener() {
             @Override
@@ -108,15 +109,15 @@ public class Simulation extends JPanel {
             }
         };
         aboutItem.addActionListener(menuClicked);
-        m.add(manualItem);
+   //     m.add(manualItem);
         m.add(aboutItem);
         return m;
     }
     /**
-     * @return
+     * Generate a JMenu to with functions to save/load species and quit the application
+     * @return the JMenu file menu, 
      */
     private JMenu makeFileMenu() {
-        // TODO Auto-generated method stub
         JMenu m = new JMenu("File");
         JMenuItem saveSpecies = new JMenuItem("Save Species");
         JMenuItem loadSpecies = new JMenuItem("Load Species");

@@ -111,7 +111,6 @@ public class CoralAnimation extends Canvas {
      * @param col the colony to add the cell to
      */
     private void addCell(int z, Colony col) {
-      //  System.out.printf("Adding cell to %d,%d %n",z/rows,z%rows);
         col.getCells().add(z);
     }
     /**
@@ -165,7 +164,7 @@ public class CoralAnimation extends Canvas {
      */
     private void removeCell(int x, int y, int colonyNumber) {
         // Remove a cell at coordinates if any
-        System.out.printf("Removing cell at %d,%d\n",x,y);
+    //    System.out.printf("Removing cell at %d,%d\n",x,y);
         colonies.get(colonyNumber).getCells().remove(x*columns + y);
         if(colonies.get(colonyNumber).getCells().isEmpty()) {
             colonies.remove(colonyNumber);
@@ -179,7 +178,8 @@ public class CoralAnimation extends Canvas {
         rows = sim.sp.getRows();
         columns = sim.sp.getColumns();
         createBufferStrategy(1);
-        
+        // Use a bufferstrategy to remove that annoying flickering of the display
+        // when rendering
         bf = getBufferStrategy();
         g = null;
         try{
@@ -202,6 +202,7 @@ public class CoralAnimation extends Canvas {
             for (Pair<Integer, Integer> i : colony.getValue().getPositions(rows, columns)) {
                 int x = i.x;
                 int y = i.y;
+                // Draw the cell
                 g.setColor(colony.getValue().getSpecies().getColor());
                 g.fillRect(x*(getWidth()/columns), y*(getHeight()/rows),getWidth()/columns ,getHeight()/rows);
                 // Draw the colony number
@@ -211,7 +212,7 @@ public class CoralAnimation extends Canvas {
                 }
             }
         }
-        // Draw the grid
+        // Draw the grid on top of colony numbers and cells
         for(int x = 0; x < columns; x++ ) {
             for (int y = 0; y < rows; y++) {
                 g.setColor(Color.GRAY);
@@ -230,6 +231,7 @@ public class CoralAnimation extends Canvas {
         detectMerges();
         // Kill any colonies that might die, before we start competing and growing/shrinking
         detectDeaths();
+        //recruit new colonies
         recruitColonies();
         HashMap<Integer, Colony> newColonies = new HashMap<Integer, Colony>();
         // Iterate through each colony and either kill, grow or shrink
@@ -284,7 +286,9 @@ public class CoralAnimation extends Canvas {
                 if(col.getKey() != colonyNumber)
                     allOtherCells.addAll(col.getValue().getCells());
             }
+            // Empty colonies don't grow
             if(!(newColonySize + allOtherCells.size() > rows*columns)) {
+                // The colony is growing
                 if(growing) {
                     newColony.setRemainingGrowth(growth - (long) growth);
                     for(int i = 1; i < growth; i++) {
@@ -304,10 +308,12 @@ public class CoralAnimation extends Canvas {
                         newColony.getCells().addAll(toAdd);
                     }
                 } else {
-                    // We need to shrink
-                    if(newColony.getCells().size() <= 1){
+                    // We need to shrink the colony
+                    if(newColony.getCells().size() == 1){
+                        // Empty colonies die
                         toKill.add(colonyNumber);
                     } else {
+                        // Leftover shrinkage is maintained for next iteration
                         newColony.setRemainingGrowth((-1)*(shrinkage-(long) shrinkage));
                         for(int i = 1; i < shrinkage ; i++){
                             ArrayList<Integer> toRemove = new ArrayList<Integer>();  
@@ -340,11 +346,21 @@ public class CoralAnimation extends Canvas {
         return tick;
     }
     
+    /**
+     * Update the species that the simulation knows about. Should only occur once before the simulation starts
+     * @param specs the list of species that the simulation will know about
+     */
     public void setSpecies(ArrayList<Species> specs) {
         species = specs;
     }
+    
+    /**
+     * Recruit the specified number of colonies from each species 
+     * to a random location on the grid
+     */
     private void recruitColonies() {
-        
+        // Set up a set of all cells so that we don't end up adding over
+        // existing cells
         HashSet<Integer> allCells = new HashSet<Integer>();
         for (Colony col : colonies.values()) {
                 allCells.addAll(col.getCells());
@@ -403,6 +419,9 @@ public class CoralAnimation extends Canvas {
                             && otherColony.getValue().getCells().contains(i)) {
                                 Pair<Integer,Integer> cols = new Pair<Integer,Integer>(otherColony.getKey() , colony.getKey());
                                 boolean contains = false;
+                                // Make sure we don't try to merge the same colony twice (even though checking is O(1) it clogged up the logs)
+                                // and checking through the list of colonies to merge is O(n), it will remain small because we are nubbing it 
+                                // every time
                                 for (Pair<Integer, Integer> pair : toMerge) {
                                     if(pair.x == cols.x && pair.y == cols.y || pair.x == cols.y && pair.y == cols.x) {
                                         contains = true;

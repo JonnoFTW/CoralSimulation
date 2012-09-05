@@ -137,7 +137,7 @@ public class SidePanel extends JPanel {
             
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                // TODO Auto-generated method stub
+                // Force the simulation to perform 1 tick
                 tick(s.coralSim.tick());
                 s.coralSim.repaint();
             }
@@ -178,10 +178,9 @@ public class SidePanel extends JPanel {
             
             @Override
             public void stateChanged(ChangeEvent arg0) {
-                // TODO Auto-generated method stub
                 if(tglbtnStart.isSelected())  {
                     tglbtnStart.setText("Stop");
-                    // STart the simulation
+                    // Start the simulation
                     runSimulation();
                 }
                 else {
@@ -206,7 +205,7 @@ public class SidePanel extends JPanel {
             
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                // TODO Auto-generated method stub
+                // Repaint the simulation when we toggle colony number visibility
                 s.coralSim.repaint();
             }
         });
@@ -216,7 +215,6 @@ public class SidePanel extends JPanel {
                 i.addActionListener(inputChangeListener);
             }
         } catch (ParseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -342,7 +340,7 @@ public class SidePanel extends JPanel {
                 
                 @Override
                 public void propertyChange(PropertyChangeEvent evt) {
-                    // TODO Auto-generated method stub
+                    // Update the progress bar with the current tick
                     if("progress".equals(evt.getPropertyName())){
                         tick((Integer) evt.getNewValue());
                     }
@@ -351,8 +349,8 @@ public class SidePanel extends JPanel {
         }
         @Override
         protected String doInBackground() throws Exception {
-            // TODO Auto-generated method stub
             try {
+                // Set the name of the logfile to be the current date and time
                 Date now = Calendar.getInstance().getTime();
                 String outputName = s.getLogDir()+(new SimpleDateFormat("ddMMyyyy-HHmmss'.log'").format(now));
                 outFile = new BufferedWriter(new FileWriter(outputName));
@@ -378,11 +376,10 @@ public class SidePanel extends JPanel {
                 outFile.write("Running Simulation at "+(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(now))+LINE_SEP);
                 outFile.write(speciesReport.toString());
                 outFile.write(sizeClassReport.toString());
+                // These exceptions are required
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();   
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();   
             }
             long start = 0;
