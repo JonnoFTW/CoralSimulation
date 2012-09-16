@@ -50,7 +50,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         
         rng = new Random();
         // Load in the default species
-       // importSpecies("default.dat");
+        importSpecies();
         setLayout(new BorderLayout());
       
         
@@ -66,8 +66,11 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 return new GroupableTableHeader(columnModel);
             }
         };
-        tbl.getColumnModel().getColumn(12).setCellEditor(new SizeClassTableCellEditor());
-     //   tbl.setDefaultEditor(ArrayList.class, new SizeClassTableCellEditor());
+        
+        // Set custom cell editors
+        tbl.setDefaultRenderer(Color.class,new ColorRenderer(true));
+        tbl.setDefaultEditor(Color.class, new ColorEditor());
+        tbl.setDefaultEditor(ArrayList.class, new SizeClassTableCellEditor());
         TableColumnModel cm = tbl.getColumnModel();
         ColumnGroup growthAll = new ColumnGroup("Growth");
         ColumnGroup growthC = new ColumnGroup("Competing");
@@ -116,7 +119,11 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             objOut.close();
         } catch (IOException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
+    }
+    public void exportSpecies() {
+        exportSpecies(sp.s.getSpeciesDir()+"default.dat");
     }
     /**
      * Import the default species "default.dat" from the species directory
@@ -137,9 +144,9 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 objIn.close();
                 setSpeciesList(speciesList);
             }
-         catch (FileNotFoundException e) {
+        catch (FileNotFoundException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error loading species file! "+e.getMessage());
+         //   JOptionPane.showMessageDialog(this, "Error loading species file! "+e.getMessage());
         }
         catch(IOException e) {
             JOptionPane.showMessageDialog(this, "IOException: "+e.getMessage());
@@ -225,11 +232,13 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 int   shrinkTS   = (Integer) model.getValueAt(i, 10);
                 int   recruits   = (Integer) model.getValueAt(i, 11);
                 ArrayList<SizeClass> sizeClasses = (ArrayList<SizeClass>) model.getValueAt(i, 12);
-                
-                Species s = new Species(Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f),
+                Color c          = (Color) model.getValueAt(i, 13);
+                // Old random pastel colour generator
+                //Color.getHSBColor(rng.nextFloat(),(rng.nextInt(2000) + 1000) / 10000f,0.9f)
+                Species s = new Species(c,
                         grow,shrink,growC,shrinkC, name,  growSD, shrinkSD, growCSD, shrinkCSD, sizeClasses,growTS, shrinkTS, recruits);
                 speciesList.add(s);
-                exportSpecies(sp.s.getSpeciesDir()+"default.dat");
+                exportSpecies();
        //         System.out.println("Added "+s);
             }
         }
@@ -244,7 +253,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     private class SpeciesTableModel extends DefaultTableModel {
         private static final long serialVersionUID = -246523524036828973L;
         //                                            Growth   Growth(c)Shrink   Shrink(c)
-        private final String[] columnTitles = {"Name","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Recruits","Size Classes"};
+        private final String[] columnTitles = {"Name","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Recruits","Size Classes","Color"};
         
         
         /**
@@ -266,8 +275,8 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             pdSC.add(new SizeClass(100, 200,  (1-Math.pow((1-0.0644),2)), 0.48, 0.28));
             pdSC.add(new SizeClass(200, Integer.MAX_VALUE,  (1-Math.pow((1-0.02),2)), 0.36, 0.18));
             
-            addRow(new Object[]{"A Hya.", 4.23, 0d, 2.55, 0.00078,15, 2.07 , 0.0014 ,4.46 ,0d     ,12 ,1, ahyaSC});
-            addRow(new Object[]{"PD",     0.38, 0d, 0.36, 0d     ,6, 1.04 , 0.0025 ,0.6  ,0.0019 ,12 ,1, pdSC});
+            addRow(new Object[]{"A Hya.", 4.23, 0d, 2.55, 0.00078,15, 2.07 , 0.0014 ,4.46 ,0d     ,12 ,1, ahyaSC, Color.blue});
+            addRow(new Object[]{"PD",     0.38, 0d, 0.36, 0d     ,6, 1.04 , 0.0025 ,0.6  ,0.0019 ,12 ,1, pdSC, Color.red});
             for (String string : columnTitles) {
                 addColumn(string);
             }

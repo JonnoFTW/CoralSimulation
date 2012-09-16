@@ -391,10 +391,10 @@ public class CoralAnimation extends Canvas {
             Colony c = colony.getValue();
             boolean died = false;
             if(c.getCells().size() == 0) {
-                notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died from shrinkage");
+                notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died from shrinkage").append(LINE_SEP);
                 died = true;
             } else if (c.getSpecies().getDie(c.getCells().size()) > rng.nextFloat()) {
-                notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died");
+                notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died").append(LINE_SEP);
                died = true;
             }
             if(died)
@@ -535,5 +535,12 @@ public class CoralAnimation extends Canvas {
         notes = new StringBuilder();
         s.append("--------------------------------------------------------------------").append(LINE_SEP);
         return s.toString();
+    }
+    public String getCSVReport() {
+        StringBuilder sb = new StringBuilder(64);
+        for (Entry<Integer, Colony> p: colonies.entrySet()) {
+            sb.append(tick).append(",").append(p.getKey()).append(",").append(p.getValue().getCells().size()).append(",\"").append(p.getValue().getSpecies()).append("\"").append(LINE_SEP);
+        }
+        return sb.toString();
     }
 }
