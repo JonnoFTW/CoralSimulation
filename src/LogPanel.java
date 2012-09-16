@@ -1,22 +1,31 @@
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import net.miginfocom.swing.MigLayout;
 
 
 /**
@@ -29,12 +38,28 @@ public class LogPanel extends JPanel {
     private JList list;
     private JTextArea text;
     /**
-     * @param string the directory to look for log files in
+     * @param logDir the directory to look for log files in
      */
-    public LogPanel(String string) {
+    public LogPanel(final String logDir) {
         setLayout(new BorderLayout(0, 0));
-        dir = new File(string);
+        dir = new File(logDir);
         
+        final JButton btnOpenInExcel = new JButton("Open in Excel");
+        btnOpenInExcel.setEnabled(false);
+        btnOpenInExcel.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                // TODO Auto-generated method stub
+                try {
+                    Desktop.getDesktop().open((File) list.getSelectedValue());
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+        btnOpenInExcel.setToolTipText("Open .csv files in the default editor");
         list = new JList();
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setCellRenderer(new FileListCellRenderer());
@@ -47,8 +72,13 @@ public class LogPanel extends JPanel {
                         return;
                     if(list.isSelectionEmpty())
                         list.setSelectedIndex(0);
+                    File f = (File) list.getSelectedValue();
+                    if(f.getName().endsWith("csv")) 
+                        btnOpenInExcel.setEnabled(true);
+                    else 
+                        btnOpenInExcel.setEnabled(false);
                     BufferedReader log = new BufferedReader(
-                            new FileReader((File) list.getSelectedValue()));
+                            new FileReader(f));
                     text.read(log, "File contents");
                     log.close();
                 } catch (FileNotFoundException e1) {
@@ -63,7 +93,33 @@ public class LogPanel extends JPanel {
         text.setFont(new Font("Monospaced",Font.PLAIN, 14));
         
         add(new JScrollPane(text), BorderLayout.CENTER);
-        add(new JScrollPane(list), BorderLayout.EAST);
+        JPanel logButtonPanel = new JPanel();
+        logButtonPanel.setLayout(new BorderLayout());
+        logButtonPanel.add(new JScrollPane(list),BorderLayout.CENTER);
+        JPanel buttonPanel = new JPanel();
+        
+        buttonPanel.setLayout(new MigLayout("", "[131px]", "[23px][]"));
+        logButtonPanel.add(buttonPanel,BorderLayout.SOUTH);
+        
+        JButton btnExploreLogDirectory = new JButton("Explore log directory");
+        buttonPanel.add(btnExploreLogDirectory, "cell 0 0,growx");
+        
+        btnExploreLogDirectory.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                try {
+                    Desktop.getDesktop().browse(dir.toURI());
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+        
+        
+        buttonPanel.add(btnOpenInExcel, "cell 0 1,growx");
+        add(logButtonPanel, BorderLayout.EAST);
         loadLogList();
     }
 

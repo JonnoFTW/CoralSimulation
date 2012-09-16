@@ -74,7 +74,7 @@ public class Simulation extends JPanel {
     private JMenuBar makeMenuBar() {
         // Make the menu bar
         JMenuBar mb = new JMenuBar();
-        mb.add(makeFileMenu());
+   //     mb.add(makeFileMenu());
         mb.add(makeHelpMenu());
         return mb;
     }
@@ -115,6 +115,7 @@ public class Simulation extends JPanel {
     }
     /**
      * Generate a JMenu to with functions to save/load species and quit the application
+     * this is now redundant beacuse species are saved and loaded automatically from the one file
      * @return the JMenu file menu, 
      */
     private JMenu makeFileMenu() {
