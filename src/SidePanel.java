@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import javax.swing.JLabel;
@@ -14,7 +13,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
@@ -22,16 +20,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import javax.swing.JButton;
@@ -115,6 +108,31 @@ public class SidePanel extends JPanel {
         lblSize = new JLabel("Size: ");
         add(lblSize, "cell 2 12");
         
+        JButton btnStep = new JButton("Step");
+        btnStep.setToolTipText("Complete 1 step of the simulation");
+        btnStep.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                // Force the simulation to perform 1 tick
+                tick(s.coralSim.tick());
+                s.coralSim.repaint();
+            }
+        });
+        
+        JButton btnClear = new JButton("Reset");
+        btnClear.setToolTipText("Clear the cells and reset the simulation");
+        btnClear.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                // Clear the grid, reset iterations
+                resetSim();
+            }
+        });
+        add(btnClear, "cell 0 14,growx");
+        add(btnStep, "cell 0 15,growx");
+        
         lblIteration = new JLabel("Iteration: 0/"+iterationsInput.getValue());
         add(lblIteration, "cell 2 16,alignx left");
         
@@ -140,47 +158,12 @@ public class SidePanel extends JPanel {
         animationMode.add(animateButton);
         rdbtnSkip.setSelected(true);
         
-        JButton btnStep = new JButton("Step");
-        btnStep.setToolTipText("Complete 1 step of the simulation");
-        btnStep.addActionListener(new ActionListener() {
-            
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                // Force the simulation to perform 1 tick
-                tick(s.coralSim.tick());
-                s.coralSim.repaint();
-            }
-        });
-        
-        JButton btnClear = new JButton("Reset");
-        btnClear.setToolTipText("Clear the cells and reset the simulation");
-        btnClear.addActionListener(new ActionListener() {
-            
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                // Clear the grid, reset iterations
-                resetSim();
-            }
-        });
-        add(btnClear, "cell 0 13,growx");
-        
         lblSpecies_1 = new JLabel("Species:");
         add(lblSpecies_1, "cell 2 13");
-        add(btnStep, "cell 0 14,growx");
         
         lblColony = new JLabel("Colony:");
         lblColony.setToolTipText("Indicates the location you are about to add a cell to");
         add(lblColony, "cell 2 14");
-        
-        JButton tglbtnSaveImage = new JButton("Save Image");
-        tglbtnSaveImage.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-            //    JFileChooser fc = new JFileChooser(s.getImageDir());
-            //    fc.set
-            }
-        });
-        tglbtnSaveImage.setToolTipText("Export the current simulation an image");
-        add(tglbtnSaveImage, "cell 0 15,growx");
         
         lblXY = new JLabel("x=");
         lblXY.setToolTipText("Indicates the location you are about to add a cell to");
@@ -379,7 +362,7 @@ public class SidePanel extends JPanel {
                 StringBuilder speciesReport = new StringBuilder();
                 StringBuilder sizeClassReport = new StringBuilder("Size Class Report"+LINE_SEP);
                 sizeClassReport.append("Min,Max, Mortality, GrowShrinkP, GrowShrinkCP").append(LINE_SEP);
-                System.out.println("Writing to: "+logName);
+             //   System.out.println("Writing to: "+logName);
                 int num = speciesSelected.getItemCount();
                 for (int i = 0;i<num;i++) {
                     Species spec =  (Species)speciesSelected.getItemAt(i);
@@ -394,7 +377,7 @@ public class SidePanel extends JPanel {
                 speciesReport.insert(0,"Species Report"+LINE_SEP);
               //  System.out.println(speciesReport);
               //  System.out.println(sizeClassReport);
-                outFile.write("Image: "+imageName);
+                outFile.write("Image: "+imageName+LINE_SEP);
                 outFile.write("Running Simulation at "+(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(now))+LINE_SEP);
                 outFile.write(speciesReport.toString());
                 outFile.write(sizeClassReport.toString());
@@ -426,39 +409,20 @@ public class SidePanel extends JPanel {
                 //System.err.println(e);
                 e.printStackTrace();
             } finally {
-                outFile.write("Time elapsed: "+((System.nanoTime()-start)/1000000000.0)+LINE_SEP);
+                outFile.write("Time elapsed: "+((System.nanoTime()-start)/1000000000.0)+"s"+LINE_SEP);
                 outFile.close();
                 csvFile.close();
+                s.coralSim.exportImage(imageName);
             }
             return null;
         }
         @Override
         protected void done() {
-            exportImage(imageName);
             s.coralSim.repaint();
             enableInputs();
             tglbtnStart.setSelected(false);
         }
     }
 
-    public void exportImage(String imageName) {
-        // TODO Auto-generated method stub
-        BufferedImage image = new  BufferedImage(s.coralSim.getWidth(), s.coralSim.getHeight(), BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = image.createGraphics();
-        s.coralSim.paintAll(graphics);
-        FileOutputStream out = null;
-        graphics.dispose();
-        try {
-            out = new FileOutputStream(imageName);
-            ImageIO.write(image, "png", out);
-            out.close();
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-    }
+  
 }

@@ -1,16 +1,23 @@
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
 
 
 /**
@@ -197,7 +204,7 @@ public class CoralAnimation extends Canvas {
      * Render the cells in the frame with a neat border around each cell
      * @param g
      */
-    private void render(Graphics g) {
+    private Graphics render(Graphics g) {
         for (Entry<Integer,Colony> colony : colonies.entrySet()) {
             for (Pair<Integer, Integer> i : colony.getValue().getPositions(rows, columns)) {
                 int x = i.x;
@@ -220,7 +227,7 @@ public class CoralAnimation extends Canvas {
             }
         } 
         
-        
+        return g;
     }
     /**
      * Iterate the simulation through 1 year
@@ -542,5 +549,29 @@ public class CoralAnimation extends Canvas {
             sb.append(tick).append(",").append(p.getKey()).append(",").append(p.getValue().getCells().size()).append(",\"").append(p.getValue().getSpecies()).append("\"").append(LINE_SEP);
         }
         return sb.toString();
+    }
+    
+    /**
+     * Export the the display area to a file
+     * @param imageName the image to save the file to
+     */
+    public void exportImage(String imageName) {
+        BufferedImage image = new  BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = image.createGraphics();
+        paint(graphics);
+        graphics.dispose();
+        try {
+            System.out.println("Exporting image: "+imageName);
+            FileOutputStream out = new FileOutputStream(imageName);
+            ImageIO.write(image, "png", out);
+            out.close();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
     }
 }

@@ -10,19 +10,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import net.miginfocom.swing.MigLayout;
@@ -60,6 +56,26 @@ public class LogPanel extends JPanel {
             }
         });
         btnOpenInExcel.setToolTipText("Open .csv files in the default editor");
+        final JButton btnOpenImage = new JButton("Open Image");
+        btnOpenImage.setEnabled(false);
+        btnOpenImage.setToolTipText("Open the image file associated with this log");
+        btnOpenImage.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                try {
+                    String imageName = new BufferedReader(
+                            new FileReader(
+                                    ((File)list.getSelectedValue()))).readLine().split(" ")[1];
+                  //  System.out.println("Associated image: "+imageName);
+                    Desktop.getDesktop().open(new File(imageName));
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
         list = new JList();
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setCellRenderer(new FileListCellRenderer());
@@ -73,10 +89,16 @@ public class LogPanel extends JPanel {
                     if(list.isSelectionEmpty())
                         list.setSelectedIndex(0);
                     File f = (File) list.getSelectedValue();
-                    if(f.getName().endsWith("csv")) 
+                    if(f.getName().endsWith("csv")) {
                         btnOpenInExcel.setEnabled(true);
-                    else 
+                        btnOpenImage.setEnabled(false);
+                    } else if (f.getName().endsWith("log")) {
                         btnOpenInExcel.setEnabled(false);
+                        btnOpenImage.setEnabled(true);
+                    } else {
+                        btnOpenImage.setEnabled(false);
+                        btnOpenInExcel.setEnabled(false);
+                    }
                     BufferedReader log = new BufferedReader(
                             new FileReader(f));
                     text.read(log, "File contents");
@@ -98,7 +120,7 @@ public class LogPanel extends JPanel {
         logButtonPanel.add(new JScrollPane(list),BorderLayout.CENTER);
         JPanel buttonPanel = new JPanel();
         
-        buttonPanel.setLayout(new MigLayout("", "[131px]", "[23px][]"));
+        buttonPanel.setLayout(new MigLayout("", "[131px]", "[23px][][]"));
         logButtonPanel.add(buttonPanel,BorderLayout.SOUTH);
         
         JButton btnExploreLogDirectory = new JButton("Explore log directory");
@@ -119,6 +141,9 @@ public class LogPanel extends JPanel {
         
         
         buttonPanel.add(btnOpenInExcel, "cell 0 1,growx");
+        
+
+        buttonPanel.add(btnOpenImage, "cell 0 2,growx");
         add(logButtonPanel, BorderLayout.EAST);
         loadLogList();
     }
