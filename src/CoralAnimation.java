@@ -1,5 +1,6 @@
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
@@ -89,6 +90,7 @@ public class CoralAnimation extends Canvas {
                 repaint();
             }
         });
+        repaint();
     }
     /***
      * Return the species that a cell occupies on the grid at an x,y location
@@ -178,12 +180,15 @@ public class CoralAnimation extends Canvas {
             notes.append("Colony ").append(colonyNumber).append(" has died out due to shrinkage");
         }
     }
+    
+
     /**
      * Paint the graphics
      */
     public void paint(Graphics g) {
-        rows = sim.sp.getRows();
-        columns = sim.sp.getColumns();
+
+        setColumns(sim.sp.getColumns());
+        setRows(sim.sp.getRows());
         createBufferStrategy(1);
         // Use a bufferstrategy to remove that annoying flickering of the display
         // when rendering
@@ -198,13 +203,14 @@ public class CoralAnimation extends Canvas {
         bf.show();
         Toolkit.getDefaultToolkit().sync();
         
+        
     }
     
     /**
      * Render the cells in the frame with a neat border around each cell
      * @param g
      */
-    private Graphics render(Graphics g) {
+    private void render(Graphics g) {
         for (Entry<Integer,Colony> colony : colonies.entrySet()) {
             for (Pair<Integer, Integer> i : colony.getValue().getPositions(rows, columns)) {
                 int x = i.x;
@@ -213,10 +219,7 @@ public class CoralAnimation extends Canvas {
                 g.setColor(colony.getValue().getSpecies().getColor());
                 g.fillRect(x*(getWidth()/columns), y*(getHeight()/rows),getWidth()/columns ,getHeight()/rows);
                 // Draw the colony number
-                if(sim.sp.chckbxShowColNo.isSelected()) {
-                    g.setColor(Color.black);
-                    g.drawString(colony.getKey()+"",x*(getWidth()/columns), y*(getHeight()/rows)+g.getFontMetrics().getHeight());
-                }
+                
             }
         }
         // Draw the grid on top of colony numbers and cells
@@ -226,8 +229,16 @@ public class CoralAnimation extends Canvas {
                 g.drawRect(x*(getWidth()/columns), y*(getHeight()/rows),getWidth()/columns ,getHeight()/rows);
             }
         } 
+        // Draw the colony numbers on top
+        if(sim.sp.chckbxShowColNo.isSelected()) {
+            for (Entry<Integer,Colony> colony : colonies.entrySet()) {
+                Pair<Integer,Integer> i = toXY(colony.getValue().getCells().iterator().next());
+                g.setColor(Color.black);
+                g.setFont(new Font("Monospaced", Font.BOLD , 14));
+                g.drawString(colony.getKey()+"",i.x*(getWidth()/columns), i.y*(getHeight()/rows)+g.getFontMetrics().getHeight());
+            }
+        }
         
-        return g;
     }
     /**
      * Iterate the simulation through 1 year
@@ -465,12 +476,21 @@ public class CoralAnimation extends Canvas {
     }
 
     /**
-     *  Sets the number of columns to be used in thsi simulation
+     *  Sets the number of columns to be used in the simulation
      * @param columns the number of columns to use
      */
     public void setColumns(int columns) {
         this.columns = columns;
     }
+    
+    /**
+     * Sets the number of rows used in the simulation
+     * @param rows
+     */
+    public void setRows(int rows) {
+        this.rows = rows;
+    }
+    
     /**
      * Reset the simulation
      */
@@ -558,18 +578,20 @@ public class CoralAnimation extends Canvas {
     public void exportImage(String imageName) {
         BufferedImage image = new  BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
-        paint(graphics);
+        // Set a white background on the image (default is black)
+        graphics.setColor(Color.white);
+        graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+        // Use render here instead of paint because the buffer strategy does something weird
+        render(graphics);
         graphics.dispose();
         try {
-            System.out.println("Exporting image: "+imageName);
+       //     System.out.println("Exporting image: "+imageName);
             FileOutputStream out = new FileOutputStream(imageName);
             ImageIO.write(image, "png", out);
             out.close();
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         
