@@ -305,7 +305,7 @@ public class CoralAnimation extends Canvas {
                     allOtherCells.addAll(col.getValue().getCells());
             }
             // Empty colonies don't grow
-            if(!(newColonySize + allOtherCells.size() > rows*columns)) {
+            if(!(newColonySize + allOtherCells.size() >= rows*columns)) {
                 // The colony is growing
                 if(growing) {
                     newColony.setRemainingGrowth(growth - (long) growth);

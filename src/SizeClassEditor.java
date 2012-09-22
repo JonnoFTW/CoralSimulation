@@ -93,6 +93,7 @@ public class SizeClassEditor extends JDialog {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 setSizeClasses(oldSizeClasses);
+                setVisible(false);
                 
             }
         });
@@ -172,7 +173,6 @@ public class SizeClassEditor extends JDialog {
      */
     public ArrayList<SizeClass> getSizeClasses() {
          ArrayList<SizeClass> scs = new ArrayList<SizeClass>();
-         System.out.println("Gettting size classes");
          for (int i = 0; i < table.getRowCount() -1; i++) {
              if(table.getValueAt(i, 0) == null) {
                  continue;
