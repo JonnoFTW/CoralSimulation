@@ -13,8 +13,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -186,7 +189,6 @@ public class CoralAnimation extends Canvas {
      * Paint the graphics
      */
     public void paint(Graphics g) {
-
         setColumns(sim.sp.getColumns());
         setRows(sim.sp.getRows());
         createBufferStrategy(1);
@@ -202,8 +204,6 @@ public class CoralAnimation extends Canvas {
         }
         bf.show();
         Toolkit.getDefaultToolkit().sync();
-        
-        
     }
     
     /**
@@ -246,7 +246,7 @@ public class CoralAnimation extends Canvas {
     public int tick() {
         tick++;
         // merge any colonies who have neighbouring cells and of the same species
-        detectMerges();
+        //detectMerges();
         // Kill any colonies that might die, before we start competing and growing/shrinking
         detectDeaths();
         //recruit new colonies
@@ -305,51 +305,49 @@ public class CoralAnimation extends Canvas {
                     allOtherCells.addAll(col.getValue().getCells());
             }
             // Empty colonies don't grow
-            if(!(newColonySize + allOtherCells.size() >= rows*columns)) {
+            if(!(newColonySize + allOtherCells.size()  >= rows*columns) && growing) {
                 // The colony is growing
-                if(growing) {
-                    newColony.setRemainingGrowth(growth - (long) growth);
-                    for(int i = 1; i < growth; i++) {
-                        ArrayList<Integer> toAdd = new ArrayList<Integer>();
-                        for (Integer c : newColony.getCells()) {
-                            for (int n :  getNeighbours(c)) {
-                                if(newColony.getCells().contains(n)) {
-                                    continue;
-                                } else {
-                                    if(!allOtherCells.contains(n) && !toAdd.contains(n)){
-                                   //     System.out.println("\tadding "+toXY(n));
-                                        toAdd.add(n);
-                                    }
+                newColony.setRemainingGrowth(growth - (long) growth);
+                for(int i = 1; i < growth; i++) {
+                    ArrayList<Integer> toAdd = new ArrayList<Integer>();
+                    for (Integer c : newColony.getCells()) {
+                        for (int n :  getNeighbours(c)) {
+                            if(newColony.getCells().contains(n)) {
+                                continue;
+                            } else {
+                                if(!allOtherCells.contains(n) && !toAdd.contains(n)){
+                               //     System.out.println("\tadding "+toXY(n));
+                                    toAdd.add(n);
                                 }
                             }
                         }
-                        newColony.getCells().addAll(toAdd);
                     }
+                    newColony.getCells().addAll(toAdd);
+                }
+            } else {
+                // We need to shrink the colony
+                if(newColony.getCells().size() == 1){
+                    // Empty colonies die
+                    toKill.add(colonyNumber);
                 } else {
-                    // We need to shrink the colony
-                    if(newColony.getCells().size() == 1){
-                        // Empty colonies die
-                        toKill.add(colonyNumber);
-                    } else {
-                        // Leftover shrinkage is maintained for next iteration
-                        newColony.setRemainingGrowth((-1)*(shrinkage-(long) shrinkage));
-                        for(int i = 1; i < shrinkage ; i++){
-                            ArrayList<Integer> toRemove = new ArrayList<Integer>();  
-                            for(Integer c : newColony.getCells()) {
-                                int comp = 0;
-                                // Detect if the cell is a border cell
-                                for(int n : getNeighbours(c)) {
-                                    if(/*allOtherCells.contains(n) ||*/ newColony.getCells().contains(n)) {
-                                        comp++;
-                                    }
-                                }
-                                if(comp < 4 &&  !toRemove.contains(c)) {
-                                    toRemove.add(c);
-                                   // System.out.println("\tRemoving "+toXY(c));
+                    // Leftover shrinkage is maintained for next iteration
+                    newColony.setRemainingGrowth((-1)*(shrinkage-(long) shrinkage));
+                    for(int i = 1; i < shrinkage ; i++){
+                        ArrayList<Integer> toRemove = new ArrayList<Integer>();  
+                        for(Integer c : newColony.getCells()) {
+                            int comp = 0;
+                            // Detect if the cell is a border cell
+                            for(int n : getNeighbours(c)) {
+                                if(/*allOtherCells.contains(n) ||*/ newColony.getCells().contains(n)) {
+                                    comp++;
                                 }
                             }
-                            newColony.getCells().removeAll(toRemove);
+                            if(comp < 4 &&  !toRemove.contains(c)) {
+                                toRemove.add(c);
+                               // System.out.println("\tRemoving "+toXY(c));
+                            }
                         }
+                        newColony.getCells().removeAll(toRemove);
                     }
                 }
             }
@@ -383,18 +381,25 @@ public class CoralAnimation extends Canvas {
         for (Colony col : colonies.values()) {
                 allCells.addAll(col.getCells());
         }
+        // Get the empty cells into a list
+        List<Integer> emptyCells = new LinkedList<Integer>();
+        for(int i = 0; i < rows*columns; i++) {
+            if(!allCells.contains(i))
+                emptyCells.add(i);
+        }
+        // Shuffle the empty cells
+        Collections.shuffle(emptyCells);
         for (Species s : species) {
             for (int i = 0; i < s.getRecruits(); i++) {
-                boolean placed = false;
-                while(!placed){
-                    int toPlace = rng.nextInt(columns*rows);
-                    if(!allCells.contains(toPlace)) {
-                        placed = true;
-                        // Pick a random coral type to recruit
-                        notes.append("New ").append(s).append(" recuited at ").append(toXY(toPlace)).append(LINE_SEP);
-                        addCell(toPlace, s,++colCount,colonies) ;
-                    } 
+                if(emptyCells.isEmpty())  {
+                    notes.append("Stopped recruiting beacuse there are no more empty cells").append(LINE_SEP);
+                    return;
                 }
+                // Pop the top element and use that
+                int toPlace = emptyCells.get(0);
+                emptyCells.remove(0);
+                notes.append("New ").append(s).append(" recuited at ").append(toXY(toPlace)).append(LINE_SEP);
+                addCell(toPlace, s,++colCount,colonies);
             }
         }
         
