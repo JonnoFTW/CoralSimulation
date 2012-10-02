@@ -6,6 +6,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -15,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 
 
 /**
@@ -74,7 +76,7 @@ public class Simulation extends JPanel {
     private JMenuBar makeMenuBar() {
         // Make the menu bar
         JMenuBar mb = new JMenuBar();
-   //     mb.add(makeFileMenu());
+        mb.add(makeFileMenu());
         mb.add(makeHelpMenu());
         return mb;
     }
@@ -115,13 +117,61 @@ public class Simulation extends JPanel {
     }
     /**
      * Generate a JMenu to with functions to save/load species and quit the application
-     * this is now redundant beacuse species are saved and loaded automatically from the one file
+     * this is now redundant because species are saved and loaded automatically from the one file
      * @return the JMenu file menu, 
      */
     private JMenu makeFileMenu() {
         JMenu m = new JMenu("File");
-        JMenuItem saveSpecies = new JMenuItem("Save Species");
-        JMenuItem loadSpecies = new JMenuItem("Load Species");
+        final JMenuItem saveSpecies = new JMenuItem("Save Species");
+        final JMenuItem loadSpecies = new JMenuItem("Load Species");
+        final JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new File(getSpeciesDir()));
+        fc.setFileFilter(new FileFilter() {
+            
+            @Override
+            public String getDescription() {
+                return "Species data files";
+            }
+            
+            @Override
+            public boolean accept(File f) {  
+                String ext = getExtension(f);
+                if(ext != null && ext.equals("dat"))
+                    return true;
+                else
+                    return false;
+            }
+        });
+        ActionListener saveLoadListener = new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              //Handle open button action.
+                if (e.getSource() == loadSpecies) {
+                    int returnVal = fc.showOpenDialog(Simulation.this);
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        File file = fc.getSelectedFile();
+                     //   System.out.println("Loading:  "+file.getAbsolutePath());
+                        specSetup.importSpecies(file.getAbsolutePath());
+                    }
+                //Handle save button action.
+                } else if (e.getSource() == saveSpecies) {
+                    int returnVal = fc.showSaveDialog(Simulation.this);
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        File file = fc.getSelectedFile();
+                        String ext = getExtension(file);
+                        if(ext == null || !ext.equals("dat")) {
+                            file = new File(file.getAbsoluteFile()+".dat");
+                        }
+                   //     System.out.println("Saving: "+file.getAbsolutePath());
+                        specSetup.exportSpecies(file.getAbsolutePath());
+                    }
+                }
+            }
+        };
+        saveSpecies.addActionListener(saveLoadListener);
+        loadSpecies.addActionListener(saveLoadListener);
+        
         JMenuItem quit = new JMenuItem("Quit");
         m.add(saveSpecies);
         m.add(loadSpecies);
@@ -129,6 +179,22 @@ public class Simulation extends JPanel {
         m.add(quit);
         return m;
     }
+    /**
+     * Returns the extension for a file
+     * @param f the file to get the extension from
+     * @return the extension of the given file
+     */
+    public static String getExtension(File f) {
+        String ext = null;
+        String s = f.getName();
+        int i = s.lastIndexOf('.');
+
+        if (i > 0 &&  i < s.length() - 1) {
+            ext = s.substring(i+1).toLowerCase();
+        }
+        return ext;
+    }
+    
     /**
      * Shows the quitting Dialogue, presents the user
      * with the option to quit, cancel or save their current

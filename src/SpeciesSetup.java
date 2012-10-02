@@ -10,7 +10,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.swing.AbstractCellEditor;
@@ -41,25 +43,25 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     private ArrayList<Species> speciesList = new ArrayList<Species>();
     private JTable tbl;
     private SidePanel sp;
-    private Random rng;
+    private String workingFile;
+    private JLabel workingLabel = new JLabel();
+    private boolean updating = false;
     /**
      * @param sp
      */
     public SpeciesSetup(SidePanel sp) {
         this.sp = sp;
-        
-        rng = new Random();
         // Load in the default species
-        importSpecies();
+        setWorkingFile(sp.s.getSpeciesDir()+"default.dat");
+        if(new File(workingFile).exists()) {
+            importSpecies();
+        }
         setLayout(new BorderLayout());
       
         
         model.addTableModelListener(this);
         addEmptyRow();
         tbl = new JTable(model) {
-            /**
-             * 
-             */
             private static final long serialVersionUID = 4222953148165159012L;
 
             protected JTableHeader createDefaultTableHeader() {
@@ -103,10 +105,17 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         
         tbl.setFillsViewportHeight(true);
         add(new JScrollPane(tbl),BorderLayout.CENTER);
-        add(new JLabel("Warning: modifying the species in any way will clear the simulation"),BorderLayout.SOUTH);      
+        add(workingLabel,BorderLayout.SOUTH);      
     }
 
-    
+    /**
+     * Set the current working file, all exports will be done to this file
+     * @param fileName
+     */
+    private void setWorkingFile(String fileName) {
+        workingFile = fileName;
+        workingLabel.setText("Currently working with file: "+fileName);
+    }
     /**
      * Export the species list to a file so we can load it next time
      * @param fileName the filename to serialise the species arraylist to
@@ -117,20 +126,21 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
             ObjectOutputStream objOut= new ObjectOutputStream(new FileOutputStream(new File(fileName)));
             objOut.writeObject(speciesList);
             objOut.close();
+            setWorkingFile(fileName);
         } catch (IOException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
     public void exportSpecies() {
-        exportSpecies(sp.s.getSpeciesDir()+"default.dat");
+        exportSpecies(workingFile);
     }
     /**
      * Import the default species "default.dat" from the species directory
      */
     public void importSpecies() {
         // Use the default species file
-        importSpecies(sp.s.getSpeciesDir()+"default.dat");
+        importSpecies(workingFile);
     }
     /**
      * Import a species file from the given file name
@@ -139,14 +149,14 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     public void importSpecies(String fileName) {
         try {
                 ObjectInputStream objIn = new  ObjectInputStream(new FileInputStream(fileName));
-                // 
                 speciesList = (ArrayList<Species>) objIn.readObject();
                 objIn.close();
+                setWorkingFile(fileName);
                 setSpeciesList(speciesList);
             }
         catch (FileNotFoundException e) {
             e.printStackTrace();
-         //   JOptionPane.showMessageDialog(this, "Error loading species file! "+e.getMessage());
+       //     JOptionPane.showMessageDialog(this, "File not found: "+e.getMessage());
         }
         catch(IOException e) {
             JOptionPane.showMessageDialog(this, "IOException: "+e.getMessage());
@@ -158,14 +168,21 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     }
 
     /**
+     * Set the species list
      * @param speciesList
      */
     private void setSpeciesList(ArrayList<Species> speciesList) {
+        // Since the tableChanged listener will fire if we try to call
+        // setRowCount on it, we need to disable this functionality
+        // because the listener will modify the speciesList and nothing will happen
+        updating = true;
+        this.speciesList = speciesList;
         model.setRowCount(0);
-        for (Species s : speciesList) {
+        for (Species s : this.speciesList) {
             model.addRow(s.getArray());
         }
-        
+        updating = false;
+        model.fireTableDataChanged();
     }
 
     /**
@@ -185,13 +202,13 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         return names;
     }
     /**
-     * 
+     * Update the species selection menu on the sidepanel
      */
     private void updateSpeciesSelection() {
         sp.setSpeciesSelections(speciesList);      
     }
     /**
-     * 
+     * Adds an empty row to the table
      */
     private void addEmptyRow() {
         model.addRow(new Object[]  {""});
@@ -203,7 +220,8 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
     public void tableChanged(TableModelEvent e) {
         // Save the species to the file, update the list on the sidepanel        
         // If a row is filled out, add it to the list of species
-
+        if(updating)
+            return;
         int names = 0;
         
         speciesList.clear();
@@ -238,12 +256,13 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
                 Species s = new Species(c,
                         grow,shrink,growC,shrinkC, name,  growSD, shrinkSD, growCSD, shrinkCSD, sizeClasses,growTS, shrinkTS, recruits);
                 speciesList.add(s);
-                exportSpecies();
+                
        //         System.out.println("Added "+s);
             }
         }
         if(names == model.getRowCount() && names != 0)
             addEmptyRow();
+        exportSpecies();
         updateSpeciesSelection();
     }
     /**
@@ -254,11 +273,7 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
         private static final long serialVersionUID = -246523524036828973L;
         //                                            Growth   Growth(c)Shrink   Shrink(c)
         private final String[] columnTitles = {"Name","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Constant","Size Dependent","Constant","Size Dependent","Time Scale","Recruits","Size Classes","Color"};
-        
-        
-        /**
-         * 
-         */
+         
         public SpeciesTableModel() {
             // These should really be serialised
             ArrayList<SizeClass> ahyaSC = new ArrayList<SizeClass>();
@@ -289,6 +304,29 @@ public class SpeciesSetup extends JPanel implements TableModelListener {
 
         @Override
         public Class getColumnClass(int c) {
+           /* switch (c) {
+            case 0:
+                return String.class;
+            case 1:    
+            case 2:
+            case 3:
+            case 4:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                return double.class;
+            case 5:
+            case 10:
+            case 11:
+                return int.class;
+            case 12:
+                return ArrayList.class;
+            case 13:
+                return Color.class;
+            default:
+                break;
+            }*/
             return getValueAt(0, c).getClass();
         }
         
