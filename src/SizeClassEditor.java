@@ -12,6 +12,11 @@ import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
+
+import TableHeader.ColumnGroup;
+import TableHeader.GroupableTableHeader;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -74,7 +79,22 @@ public class SizeClassEditor extends JDialog {
             }
         });
         
-        table = new JTable(model);
+        table = new JTable(model) {
+            private static final long serialVersionUID = 4222953148165159012L;
+
+            protected JTableHeader createDefaultTableHeader() {
+                this.setToolTipText("Probability");
+                return new GroupableTableHeader(columnModel);
+            }
+        };
+        TableColumnModel cm = table.getColumnModel();
+        ColumnGroup growShrinkGroup = new ColumnGroup("Growth/Shrink Probability");
+        growShrinkGroup.add(cm.getColumn(3));
+        growShrinkGroup.add(cm.getColumn(4));
+
+        GroupableTableHeader header = (GroupableTableHeader)table.getTableHeader();
+        header.addColumnGroup(growShrinkGroup);
+        
         JPanel panel = new JPanel();
         getContentPane().add(panel);
         panel.setLayout(new BorderLayout());
@@ -148,7 +168,7 @@ public class SizeClassEditor extends JDialog {
      */
     public boolean validateInput() {
         boolean valid = true;
-        for(int i = 0; i < model.getRowCount(); i++) {
+        for(int i = 0; i < model.getRowCount()-1; i++) {
             
             // Should probably set background colours for the cells that are invalid
             if(table.getValueAt(i, 0) == null) {
@@ -161,7 +181,7 @@ public class SizeClassEditor extends JDialog {
             }
             valid &= minMax;
             if(table.getValueAt(i+1, 0) != null)
-                valid &= (Integer) table.getValueAt(i,1) == (Integer) table.getValueAt(i+1, 0);
+                valid &= ((Integer) table.getValueAt(i,1)).intValue() == ((Integer) table.getValueAt(i+1, 0)).intValue();
             for(int j = 2; j <= 4; j++) 
                 valid &= ((Double) table.getValueAt(i, j)) < 1 && ((Double) table.getValueAt(i, j)) >= 0;
         }
@@ -195,8 +215,9 @@ public class SizeClassEditor extends JDialog {
      */
     private class SizeClassTableModel  extends DefaultTableModel{
         private static final long serialVersionUID = 6771833776664184864L;
-        private final Object[] columns = new Object[] {"Min","Max","Mortality","growshrinkp","growshrinkp (c)"}; 
+        private final Object[] columns = new Object[] {"Min","Max","Mortality","Isolation","Competition"}; 
         public SizeClassTableModel() {
+            
             for (Object i : columns) {
                 addColumn(i);
             }

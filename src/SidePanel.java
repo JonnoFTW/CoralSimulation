@@ -50,29 +50,33 @@ public class SidePanel extends JPanel {
     public Simulation s;
     final private JProgressBar progressBar;
     private JFormattedTextField rowsInput, columnsInput, iterationsInput;
-    private JLabel lblColony;
     private JLabel lblXY;
-    private JLabel lblSpecies_1;
     private SimulationRunner smltnRnr;
     private JToggleButton tglbtnStart;
     private ArrayList<JFormattedTextField> inputsArray;
     private JRadioButton animateButton;
     private JRadioButton rdbtnSkip;
+    private JCheckBox chckbxShowColNo;
+    private JLabel lblSizeval;
+    private JLabel lblColonyval;
+    private JLabel lblGrowprobval;
+    private JLabel lblGrowprobcval;
+    private JLabel lblSpeciesVal;
     private JSeparator separator;
-    public JCheckBox chckbxShowColNo;
-    private JLabel lblSize;
+    private JCheckBox chckbxDisableMortality;
     public SidePanel(final Simulation s) {
-        setToolTipText("Step inputs here");
+        setToolTipText("");
         this.s = s;
         smltnRnr = new SimulationRunner();
         NumberFormat fmt = NumberFormat.getNumberInstance();
         fmt.setMinimumIntegerDigits(1);
         setBorder(new TitledBorder(null, "Setup", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        setLayout(new MigLayout("", "[][21.00][100px:n,grow]", "[][][][][][][][][][][][][][][][][][]"));
+        setLayout(new MigLayout("", "[][21.00][100px:n,grow]", "[][][][][][][][][][][][][][][]"));
         
         JLabel lblIterations = new JLabel("Iterations");
         add(lblIterations, "cell 0 0");
         progressBar = new JProgressBar(0,100);
+        progressBar.setToolTipText("Percentage of simulation completed");
         iterationsInput = new JFormattedTextField(fmt);
         iterationsInput.setValue(100);
         iterationsInput.validate();
@@ -102,12 +106,6 @@ public class SidePanel extends JPanel {
         columnsInput.setValue(100);
         add(columnsInput, "cell 2 2,growx");
         
-        separator = new JSeparator();
-        add(separator, "cell 0 6 3 1,growx");
-        
-        lblSize = new JLabel("Size: ");
-        add(lblSize, "cell 2 12");
-        
         JButton btnStep = new JButton("Step");
         btnStep.setToolTipText("Complete 1 step of the simulation");
         btnStep.addActionListener(new ActionListener() {
@@ -130,11 +128,49 @@ public class SidePanel extends JPanel {
                 resetSim();
             }
         });
-        add(btnClear, "cell 0 14,growx");
-        add(btnStep, "cell 0 15,growx");
+        
+        separator = new JSeparator();
+        add(separator, "cell 0 5 3 1,growx");
+        
+        JLabel lblSpecies_1 = new JLabel("Species:");
+        lblSpecies_1.setToolTipText("The current species");
+        add(lblSpecies_1, "cell 0 6");
+        
+        lblSpeciesVal = new JLabel("speciesVal");
+        add(lblSpeciesVal, "cell 2 6");
+        
+        JLabel lblSize = new JLabel("Size: ");
+        lblSize.setToolTipText("size in square centimeters of the current colony");
+        add(lblSize, "cell 0 7");
+        
+        lblSizeval = new JLabel("sizeVal");
+        add(lblSizeval, "cell 2 7");
+        
+        JLabel lblColony = new JLabel("Colony:");
+        add(lblColony, "cell 0 8");
+        lblColony.setToolTipText("id of colony currently selected");
+        
+        lblColonyval = new JLabel("colonyVal");
+        add(lblColonyval, "cell 2 8");
+        
+        JLabel lblGrowthProb = new JLabel("Growth Prob:");
+        add(lblGrowthProb, "cell 0 9");
+        lblGrowthProb.setToolTipText("Probability that this colony will grow when in isolation");
+        
+        lblGrowprobval = new JLabel("growProbVal");
+        add(lblGrowprobval, "cell 2 9");
+        
+        JLabel lblGrowthProbC = new JLabel("Growth Prob. (c):");
+        add(lblGrowthProbC, "cell 0 10");
+        lblGrowthProbC.setToolTipText("Probability that this colony will grow when in competition");
+        
+        lblGrowprobcval = new JLabel("growProbCVal");
+        add(lblGrowprobcval, "cell 2 10");
+        add(btnClear, "cell 0 11,growx");
+        add(btnStep, "cell 0 12,growx");
         
         lblIteration = new JLabel("Iteration: 0/"+iterationsInput.getValue());
-        add(lblIteration, "cell 2 16,alignx left");
+        add(lblIteration, "cell 2 13,alignx left");
         
         JLabel lblSpecies = new JLabel("Species");
         lblSpecies.setToolTipText("Select the species to place when manually placing cells");
@@ -148,9 +184,11 @@ public class SidePanel extends JPanel {
         add(lblNewLabel, "cell 0 4");
         
         animateButton = new JRadioButton("Animate");
+        animateButton.setToolTipText("Selecting this will add a delay between each iteration and update the animation");
         add(animateButton, "flowy,cell 2 4");
         
         rdbtnSkip = new JRadioButton("Skip");
+        rdbtnSkip.setToolTipText("Will not update the animation and have no pauses between iterations");
         add(rdbtnSkip, "cell 2 4");
 
         ButtonGroup animationMode = new ButtonGroup();
@@ -158,20 +196,13 @@ public class SidePanel extends JPanel {
         animationMode.add(animateButton);
         rdbtnSkip.setSelected(true);
         
-        lblSpecies_1 = new JLabel("Species:");
-        add(lblSpecies_1, "cell 2 13");
-        
-        lblColony = new JLabel("Colony:");
-        lblColony.setToolTipText("Indicates the location you are about to add a cell to");
-        add(lblColony, "cell 2 14");
-        
         lblXY = new JLabel("x=");
         lblXY.setToolTipText("Indicates the location you are about to add a cell to");
-        add(lblXY, "cell 2 15");
+        add(lblXY, "cell 2 12");
         
         tglbtnStart = new JToggleButton("Start");
         tglbtnStart.setToolTipText("Run the simulation up to the specified number of iterations");
-        add(tglbtnStart, "cell 0 16,growx");
+        add(tglbtnStart, "cell 0 13,growx");
         tglbtnStart.addChangeListener(new ChangeListener() {
             
             @Override
@@ -189,7 +220,7 @@ public class SidePanel extends JPanel {
             }
         });
         progressBar.setStringPainted(true);
-        add(progressBar, "cell 0 17 3 1,growx");
+        add(progressBar, "cell 0 14 3 1,growx");
 
         inputsArray = new ArrayList<JFormattedTextField>(3);
         inputsArray.add(iterationsInput);
@@ -197,8 +228,13 @@ public class SidePanel extends JPanel {
         inputsArray.add(rowsInput);
         
         chckbxShowColNo = new JCheckBox("Show col. no.");
+        chckbxShowColNo.setToolTipText("Display colony numbers");
         chckbxShowColNo.setSelected(true);
         add(chckbxShowColNo, "cell 2 4");
+        
+        chckbxDisableMortality = new JCheckBox("Disable Mortality");
+        chckbxDisableMortality.setToolTipText("Prevent cells from dying");
+        add(chckbxDisableMortality, "cell 2 4");
         chckbxShowColNo.addActionListener(new ActionListener() {
             
             @Override
@@ -216,6 +252,17 @@ public class SidePanel extends JPanel {
             e.printStackTrace();
         }
 
+    }
+    public boolean isColonyNumberDisplayed() {
+        return chckbxShowColNo.isSelected();
+    }
+    
+    /**
+     * 
+     * @return true if mortality is disabled
+     */
+    public boolean isMortalityDisabled() {
+        return chckbxDisableMortality.isSelected();
     }
     /**
      * I'm not sure if this even used
@@ -268,22 +315,22 @@ public class SidePanel extends JPanel {
      * @param p the (X,Y)  location that is being pointed to on the grid
      * @param s The species of the focal cell
      * @param colony The colony number of the focal cell
-     * @param size the size of the focal cell
+     * @param colony2 the size of the focal cell
      */
-    public void setXY(Pair<Integer, Integer> p,Species s,int colony, int size) {
+    public void setXY(Pair<Integer, Integer> p,int colonyId, Colony c) {
         lblXY.setText(p.x+", "+p.y);
-        if(colony != 0) 
-            lblColony.setText("Colony: "+colony );
-        else
-            lblColony.setText("Colony: ");
-        if(s == null)
-            lblSpecies_1.setText("Species:");
-        else
-            lblSpecies_1.setText("Species: "+s);
-        if(size == 0) 
-            lblSize.setText("Size: ");
-        else
-            lblSize.setText("Size: "+size);
+        if(c == null) {
+            for(JLabel lbl : new JLabel[]{lblColonyval,lblGrowprobcval,lblGrowprobval,lblSpeciesVal,lblSizeval})
+                lbl.setText("");
+        } else {
+            Species s = c.getSpecies();
+            int size = c.getCells().size();
+            lblColonyval.setText(colonyId+"");
+            lblSpeciesVal.setText(s.toString());
+            lblSizeval.setText("<html>"+(size+c.getRemainingGrowth())+"cm<sup>2</sup></html>");
+            lblGrowprobval.setText(s.getGrowShrinkP(size)+"");
+            lblGrowprobcval.setText(s.getGrowShrinkPC(size)+"");
+        }
     }
     /**
      * Reset the simulation 
@@ -394,9 +441,10 @@ public class SidePanel extends JPanel {
                 int max = ((Number) iterationsInput.getValue()).intValue();
                 disableInputs();
                 while(!isCancelled() && s.coralSim.getTick() < max) {
-                    setProgress(100*s.coralSim.tick()/max);
+
                     outFile.write(s.coralSim.getReport());
                     csvFile.write(s.coralSim.getCSVReport());
+                    setProgress(100*s.coralSim.tick()/max);
                     if(animateButton.isSelected()) {
                         Thread.sleep(100);
                         s.coralSim.repaint();

@@ -69,9 +69,9 @@ public class CoralAnimation extends Canvas {
                 Pair<Integer, Integer> p = getXY(e);
                 Pair<Integer, Species> cell = getSpecies(p);
                 if(cell == null)
-                    sim.sp.setXY(p,null,0,0);
+                    sim.sp.setXY(p,0,null);
                 else
-                    sim.sp.setXY(p,cell.y,cell.x,colonies.get(cell.x).getCells().size());
+                    sim.sp.setXY(p,cell.x,colonies.get(cell.x));
             }
         });
         addMouseListener(new MouseAdapter() {
@@ -81,6 +81,8 @@ public class CoralAnimation extends Canvas {
                 // Clicking a cell will flip it,
                 // Killing the cell or bringing it back to life
                 Pair<Integer,Integer> p = getXY(e);
+                if(p.x > rows || p.y > columns)
+                    return;
                 Pair<Integer, Species> cell = getSpecies(p);
                 if(cell != null) { 
                     notes.append("Removing cell at: x="+p.x+" y="+p.y+", "+cell.y).append(LINE_SEP);
@@ -98,7 +100,7 @@ public class CoralAnimation extends Canvas {
     /***
      * Return the species that a cell occupies on the grid at an x,y location
      * @param p a pair of x,y coordinates
-     * @return
+     * @return a pair with the colony id and species
      */
     private Pair<Integer,Species> getSpecies(Pair<Integer,Integer> p) {
         for (Entry<Integer, Colony> c : colonies.entrySet()) {
@@ -107,6 +109,7 @@ public class CoralAnimation extends Canvas {
         }
         return null;
     }
+    
     /**
      * Converts a mouse event into its x,y location on the grid
      * @param e the mouse event
@@ -230,7 +233,7 @@ public class CoralAnimation extends Canvas {
             }
         } 
         // Draw the colony numbers on top
-        if(sim.sp.chckbxShowColNo.isSelected()) {
+        if(sim.sp.isColonyNumberDisplayed()) {
             for (Entry<Integer,Colony> colony : colonies.entrySet()) {
                 Pair<Integer,Integer> i = toXY(colony.getValue().getCells().iterator().next());
                 g.setColor(Color.black);
@@ -309,16 +312,14 @@ public class CoralAnimation extends Canvas {
                 // The colony is growing
                 newColony.setRemainingGrowth(growth - (long) growth);
                 for(int i = 1; i < growth; i++) {
+                    // All the new cells we can add
                     ArrayList<Integer> toAdd = new ArrayList<Integer>();
+                    // Iterate through all the cells in the colony and occupy any free cells
                     for (Integer c : newColony.getCells()) {
                         for (int n :  getNeighbours(c)) {
-                            if(newColony.getCells().contains(n)) {
-                                continue;
-                            } else {
-                                if(!allOtherCells.contains(n) && !toAdd.contains(n)){
-                               //     System.out.println("\tadding "+toXY(n));
-                                    toAdd.add(n);
-                                }
+                            if(!newColony.getCells().contains(n) && !allOtherCells.contains(n) && !toAdd.contains(n)){
+                           //     System.out.println("\tadding "+toXY(n));
+                                toAdd.add(n);
                             }
                         }
                     }
@@ -416,7 +417,7 @@ public class CoralAnimation extends Canvas {
             if(c.getCells().size() == 0) {
                 notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died from shrinkage").append(LINE_SEP);
                 died = true;
-            } else if (c.getSpecies().getDie(c.getCells().size()) > rng.nextFloat()) {
+            } else if (c.getSpecies().getDie(c.getCells().size()) > rng.nextFloat() && sim.sp.isMortalityDisabled()) {
                 notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died").append(LINE_SEP);
                died = true;
             }
@@ -560,7 +561,7 @@ public class CoralAnimation extends Canvas {
                 append(p.getKey()).append(", ").
                 append(p.getValue().getSpecies()).
                 append(", size: ").
-                append(p.getValue().getCells().size()).
+                append(p.getValue().getCells().size()+p.getValue().getRemainingGrowth()).
                 append(LINE_SEP);
         }
         s.append(notes);
@@ -571,7 +572,7 @@ public class CoralAnimation extends Canvas {
     public String getCSVReport() {
         StringBuilder sb = new StringBuilder(64);
         for (Entry<Integer, Colony> p: colonies.entrySet()) {
-            sb.append(tick).append(",").append(p.getKey()).append(",").append(p.getValue().getCells().size()).append(",\"").append(p.getValue().getSpecies()).append("\"").append(LINE_SEP);
+            sb.append(tick).append(",").append(p.getKey()).append(",").append(p.getValue().getCells().size()+p.getValue().getRemainingGrowth()).append(",\"").append(p.getValue().getSpecies()).append("\"").append(LINE_SEP);
         }
         return sb.toString();
     }

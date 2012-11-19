@@ -8,6 +8,9 @@ import java.io.Serializable;
  */
 public class SizeClass implements Serializable{
 
+    /**
+     * 
+     */
     private double mortality, growshrinkP, growshrinkPC;
     
     /**
