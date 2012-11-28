@@ -32,6 +32,13 @@ public class SpeciesTest {
         ahya = new Species(Color.blue, 4.23, 2.07,   2.55,  4.46,    "A Hya.", 0d,     0.00078,   0.0014, 0d,        ahyaSC,     15,     12 ,      1);
         pd   = new Species(Color.red,  0.38, 1.04,   0.36,  0.6d,    "PD",     1.04 ,  0.0025 ,   0.6  ,  0.0019,    pdSC,       6,      12 ,      1);
     }
+    /**
+     * Test that the getDie() method works. We don't need to test negative values
+     * since the size of a @see HashSet cannot be negative and so a colony will never
+     * attempt to get the mortality rate of a species of negative size. 
+     * This test should also verify that the in() method of a {@link SizeClass} works correctly
+     * and so the getGrowShrinkP() and getGrowShrinkPC() work correctly since the same method is used.
+     */
     @Test
     public void testGetDie() {
         double dieAhya1 = 1-Math.pow((1-0.272),12/7.5);
@@ -99,15 +106,6 @@ public class SpeciesTest {
         for (int i : testSizes8) {
             assertEquals(diepd4, pd.getDie(i),1e-3);
         }
-    }
-    @Test
-    public void testGetGrowShrinkP() {
-        assertTrue(true);
-    }
-
-    @Test
-    public void testGetGrowShrinkPC() {
-        assertTrue(true);
     }
 
 }

@@ -7,10 +7,6 @@ import java.io.Serializable;
  * growth/shrinkage when in isolation and competition.
  */
 public class SizeClass implements Serializable{
-
-    /**
-     * 
-     */
     private double mortality, growshrinkP, growshrinkPC;
     
     /**
@@ -38,13 +34,13 @@ public class SizeClass implements Serializable{
             return false;
     }
     /**
-     * @return the probability of a species in this size class dieing
+     * @return the probability of a species in this size class dyeing
      */
     public double getMortality(){
         return mortality;
     }
     /**
-     * @return the probability of a species in this size class growing when not in competition
+     * @return the probability of a species in this size class growing when in isolation
      */
     public double getGrowShrinkP() {
         return growshrinkP;
