@@ -153,7 +153,7 @@ public class CoralAnimation extends Canvas {
         addCell(z/rows,z%rows, s,  colonyNo, col);
     }
     /**
-     * Merge 2 colony counts, as selected when performing a step
+     * Merge 2 colonies
      * @param colony1 the first colony to merge
      * @param colony2 the 2nd colony to merge
      */
@@ -408,6 +408,8 @@ public class CoralAnimation extends Canvas {
     }
     /**
      * Iterate through the colonies and see if they die this iteration
+     * Colonies with no cells die. A colony also has a chance of dyeing based
+     * off its size.
      */
     private void detectDeaths() {
         ArrayList<Integer> toKill = new ArrayList<Integer>();
