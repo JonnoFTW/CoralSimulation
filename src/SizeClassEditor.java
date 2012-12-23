@@ -183,7 +183,7 @@ public class SizeClassEditor extends JDialog {
             if(table.getValueAt(i+1, 0) != null)
                 valid &= ((Integer) table.getValueAt(i,1)).intValue() == ((Integer) table.getValueAt(i+1, 0)).intValue();
             for(int j = 2; j <= 4; j++) 
-                valid &= ((Double) table.getValueAt(i, j)) < 1 && ((Double) table.getValueAt(i, j)) >= 0;
+                valid &= ((Double) table.getValueAt(i, j)) <= 1 && ((Double) table.getValueAt(i, j)) >= 0;
         }
         return valid;
     }

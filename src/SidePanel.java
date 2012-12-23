@@ -64,6 +64,7 @@ public class SidePanel extends JPanel {
     private JLabel lblSpeciesVal;
     private JSeparator separator;
     private JCheckBox chckbxDisableMortality;
+    private JCheckBox chckbxDisableShrinkage;
     public SidePanel(final Simulation s) {
         setToolTipText("");
         this.s = s;
@@ -235,6 +236,9 @@ public class SidePanel extends JPanel {
         chckbxDisableMortality = new JCheckBox("Disable Mortality");
         chckbxDisableMortality.setToolTipText("Prevent cells from dying");
         add(chckbxDisableMortality, "cell 2 4");
+        
+        chckbxDisableShrinkage = new JCheckBox("Disable Shrinkage");
+        add(chckbxDisableShrinkage, "cell 2 4");
         chckbxShowColNo.addActionListener(new ActionListener() {
             
             @Override
@@ -263,6 +267,13 @@ public class SidePanel extends JPanel {
      */
     public boolean isMortalityDisabled() {
         return chckbxDisableMortality.isSelected();
+    }
+    /**
+     * 
+     * @return true if shrinkage is disabled
+     */
+    public boolean isShrinkageDisabled() {
+        return chckbxDisableShrinkage.isSelected();
     }
     /**
      * I'm not sure if this even used

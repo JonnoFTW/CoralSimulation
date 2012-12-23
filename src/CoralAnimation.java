@@ -296,7 +296,7 @@ public class CoralAnimation extends Canvas {
             shrinkage += colony.getValue().getRemainingGrowth();
         //    System.out.println("remaining growth for "+colonyNumber+": "+colony.getValue().getRemainingGrowth());
             // Check if this colony will grow or shrink this period
-            boolean growing = growShrinkP > rng.nextFloat();
+            boolean growing = growShrinkP > rng.nextFloat() || sim.sp.isShrinkageDisabled();
             notes.append("Colony ").append(colonyNumber).append(" ").append(s).append(" (Competing:").append(competing).append(") ").
                 append(growing?"grew":"shrank").append(" by ").
                 append(growing?growth:shrinkage).append( "cm").append(LINE_SEP);
@@ -413,22 +413,26 @@ public class CoralAnimation extends Canvas {
      */
     private void detectDeaths() {
         ArrayList<Integer> toKill = new ArrayList<Integer>();
+        int originalSize = colonies.size();
         for (Entry<Integer, Colony> colony : colonies.entrySet()) {
             Colony c = colony.getValue();
             boolean died = false;
+            double mortProb = c.getSpecies().getDie(c.getCells().size()+2100);
             if(c.getCells().size() == 0) {
                 notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died from shrinkage").append(LINE_SEP);
                 died = true;
-            } else if (c.getSpecies().getDie(c.getCells().size()) > rng.nextFloat() && sim.sp.isMortalityDisabled()) {
-                notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died").append(LINE_SEP);
+            } else if (mortProb > rng.nextFloat() && !sim.sp.isMortalityDisabled()) {
+                notes.append("Colony: "+colony.getKey()+" "+c.getSpecies() +" died with rate: "+mortProb).append(LINE_SEP);
                died = true;
             }
-            if(died)
+            if(died) {
                 toKill.add(colony.getKey());
+            }
         }
         for (Integer i : toKill) {
            killColony(i);
         }
+        notes.append("Mortality at "+tick+": "+toKill.size()+"/"+originalSize+": "+((float)toKill.size()/originalSize)+LINE_SEP);
     }
     /**
      * Merge any adjacent colonies
