@@ -8,7 +8,26 @@ import java.util.HashSet;
 public class Colony {
     private HashSet<Integer> cells = new HashSet<Integer>();
     final private Species species;
-    private  double remainingGrowth;
+    private  double remainingGrowth, remainingShrinkage;
+    /**
+     * Resets remaining growth and shrinkage to 0
+     */
+    public void resetRemaining() {
+        remainingGrowth = remainingShrinkage = 0;
+    }
+   
+    /**
+     * @return the remainingShrinkage
+     */
+    public double getRemainingShrinkage() {
+        return remainingShrinkage;
+    }
+    /**
+     * @param remainingShrinkage the remainingShrinkage to set
+     */
+    public void setRemainingShrinkage(double remainingShrinkage) {
+        this.remainingShrinkage = remainingShrinkage;
+    }
     /**
      * @param s the species of this colony
      */

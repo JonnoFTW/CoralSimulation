@@ -257,29 +257,33 @@ public class CoralAnimation extends Canvas {
         HashMap<Integer, Colony> newColonies = new HashMap<Integer, Colony>();
         // Iterate through each colony and either kill, grow or shrink
         ArrayList<Integer> toKill = new ArrayList<Integer>(); // Colonies to kill off because they shrank to death
-        for (Entry<Integer, Colony> colony : colonies.entrySet()) {
+        for (Entry<Integer, Colony> colonyEntry : colonies.entrySet()) {
+            Colony colony = colonyEntry.getValue();
             boolean competing = false;
-            // Detect if this colony is competing
-            for (Integer cell : colony.getValue().getCells()) {
-                Pair<Integer,Integer> xy = toXY(cell);
-                for(int i : getNeighbours(xy.x, xy.y)) {
-                    for (Entry<Integer, Colony> otherColony : colonies.entrySet()) {
-                        if(otherColony.getKey() != colony.getKey()
-                                && otherColony.getValue().getCells().contains(i)
-                                && otherColony.getValue().getSpecies() != colony.getValue().getSpecies()) {
-                            competing = true;
-                            break;
+            if(sim.sp.isCompetitionForced()) {
+                competing = true;
+            }  else {
+                // Detect if this colony is competing
+                for (Integer cell : colony.getCells()) {
+                    Pair<Integer,Integer> xy = toXY(cell);
+                    for(int i : getNeighbours(xy.x, xy.y)) {
+                        for (Entry<Integer, Colony> otherColony : colonies.entrySet()) {
+                            if(otherColony.getKey() != colonyEntry.getKey()
+                                    && otherColony.getValue().getCells().contains(i)
+                                    && otherColony.getValue().getSpecies() != colony.getSpecies()) {
+                                competing = true;
+                                break;
+                            }
                         }
+                        if(competing) break;
                     }
-                    if(competing) break;
                 }
             }
-            
             double newColonySize = 0d;
-            Species s = colony.getValue().getSpecies();
-            HashSet<Integer> cells = colony.getValue().getCells();
+            Species s = colony.getSpecies();
+            HashSet<Integer> cells = colony.getCells();
             Integer colonySize = cells.size();
-            Integer colonyNumber = colony.getKey();
+            Integer colonyNumber = colonyEntry.getKey();
             double shrinkage,growth,growShrinkP;
             
             if(competing) {
@@ -291,12 +295,19 @@ public class CoralAnimation extends Canvas {
                 growth      = s.getGrow(colonySize);
                 growShrinkP = s.getGrowShrinkP(colonySize);
             }
+            System.out.println("shrinkage "+shrinkage);
             Colony newColony = new Colony(s);
-            growth    += colony.getValue().getRemainingGrowth();
-            shrinkage += colony.getValue().getRemainingGrowth();
+            growth    += colony.getRemainingGrowth()   - colony.getRemainingShrinkage();
+            shrinkage += colony.getRemainingShrinkage()- colony.getRemainingGrowth();
+            
+            colony.resetRemaining();
+
         //    System.out.println("remaining growth for "+colonyNumber+": "+colony.getValue().getRemainingGrowth());
             // Check if this colony will grow or shrink this period
             boolean growing = growShrinkP > rng.nextFloat() || sim.sp.isShrinkageDisabled();
+            if(sim.sp.isGrowthDisabled())
+                growing = false;
+            
             notes.append("Colony ").append(colonyNumber).append(" ").append(s).append(" (Competing:").append(competing).append(") ").
                 append(growing?"grew":"shrank").append(" by ").
                 append(growing?growth:shrinkage).append( "cm").append(LINE_SEP);
@@ -332,12 +343,13 @@ public class CoralAnimation extends Canvas {
                     toKill.add(colonyNumber);
                 } else {
                     // Leftover shrinkage is maintained for next iteration
-                    newColony.setRemainingGrowth((-1)*(shrinkage-(long) shrinkage));
+                    System.out.println("Shrinkage "+shrinkage );
+                    newColony.setRemainingShrinkage((shrinkage-(long) shrinkage));
                     for(int i = 1; i < shrinkage ; i++){
                         ArrayList<Integer> toRemove = new ArrayList<Integer>();  
                         for(Integer c : newColony.getCells()) {
                             int comp = 0;
-                            // Detect if the cell is a border cell
+                            // Detect if the cell is a border cell since they die first
                             for(int n : getNeighbours(c)) {
                                 if(/*allOtherCells.contains(n) ||*/ newColony.getCells().contains(n)) {
                                     comp++;
@@ -567,7 +579,7 @@ public class CoralAnimation extends Canvas {
                 append(p.getKey()).append(", ").
                 append(p.getValue().getSpecies()).
                 append(", size: ").
-                append(p.getValue().getCells().size()+p.getValue().getRemainingGrowth()).
+                append(p.getValue().getCells().size()+p.getValue().getRemainingGrowth()-p.getValue().getRemainingShrinkage()).
                 append(LINE_SEP);
         }
         s.append(notes);
@@ -578,7 +590,7 @@ public class CoralAnimation extends Canvas {
     public String getCSVReport() {
         StringBuilder sb = new StringBuilder(64);
         for (Entry<Integer, Colony> p: colonies.entrySet()) {
-            sb.append(tick).append(",").append(p.getKey()).append(",").append(p.getValue().getCells().size()+p.getValue().getRemainingGrowth()).append(",\"").append(p.getValue().getSpecies()).append("\"").append(LINE_SEP);
+            sb.append(tick).append(",").append(p.getKey()).append(",").append(p.getValue().getCells().size()+p.getValue().getRemainingGrowth()-p.getValue().getRemainingShrinkage()).append(",\"").append(p.getValue().getSpecies()).append("\"").append(LINE_SEP);
         }
         return sb.toString();
     }

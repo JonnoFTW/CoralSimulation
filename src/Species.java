@@ -159,8 +159,7 @@ public class Species implements Serializable {
      * @return the shrinkage rate of this species when in competition
      */
     public double getShrinkC(int colonySize) {
-        return (this.shrinkC + this.shrinkCSD * colonySize * colonySize)
-                * shrinkTS;
+        return (this.shrinkC + this.shrinkCSD * colonySize) * shrinkTS;
     }
 
     /**

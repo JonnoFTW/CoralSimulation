@@ -64,6 +64,8 @@ public class SidePanel extends JPanel {
     private JLabel lblSpeciesVal;
     private JSeparator separator;
     private JCheckBox chckbxDisableMortality;
+    private JCheckBox chckbxForceCompetition;
+    private JCheckBox chckbxDisableGrowth;
     private JCheckBox chckbxDisableShrinkage;
     public SidePanel(final Simulation s) {
         setToolTipText("");
@@ -234,11 +236,37 @@ public class SidePanel extends JPanel {
         add(chckbxShowColNo, "cell 2 4");
         
         chckbxDisableMortality = new JCheckBox("Disable Mortality");
-        chckbxDisableMortality.setToolTipText("Prevent cells from dying");
+        chckbxDisableMortality.setToolTipText("Prevent colonies from dying");
         add(chckbxDisableMortality, "cell 2 4");
+
+        chckbxDisableGrowth = new JCheckBox("Disable Growth");
+        chckbxDisableGrowth.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(chckbxDisableShrinkage.isSelected())
+                    chckbxDisableShrinkage.setSelected(false);
+                
+            }
+        });
+        add(chckbxDisableGrowth, "cell 2 4");
         
         chckbxDisableShrinkage = new JCheckBox("Disable Shrinkage");
+        chckbxDisableShrinkage.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(chckbxDisableGrowth.isSelected())
+                    chckbxDisableGrowth.setSelected(false);
+                
+            }
+        });
         add(chckbxDisableShrinkage, "cell 2 4");
+
+        
+        chckbxForceCompetition = new JCheckBox("Force Competition");
+        chckbxForceCompetition.setToolTipText("the species will always act as though they are in competition");
+        add(chckbxForceCompetition, "cell 2 4");
         chckbxShowColNo.addActionListener(new ActionListener() {
             
             @Override
@@ -268,12 +296,19 @@ public class SidePanel extends JPanel {
     public boolean isMortalityDisabled() {
         return chckbxDisableMortality.isSelected();
     }
+    
+    public boolean isCompetitionForced() {
+        return chckbxForceCompetition.isSelected();
+    }
     /**
      * 
      * @return true if shrinkage is disabled
      */
     public boolean isShrinkageDisabled() {
         return chckbxDisableShrinkage.isSelected();
+    }
+    public boolean isGrowthDisabled() {
+        return chckbxDisableGrowth.isSelected();
     }
     /**
      * I'm not sure if this even used
