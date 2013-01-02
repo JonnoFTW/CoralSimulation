@@ -295,7 +295,7 @@ public class CoralAnimation extends Canvas {
                 growth      = s.getGrow(colonySize);
                 growShrinkP = s.getGrowShrinkP(colonySize);
             }
-            System.out.println("shrinkage "+shrinkage);
+       //     System.out.println("shrinkage "+shrinkage);
             Colony newColony = new Colony(s);
             growth    += colony.getRemainingGrowth()   - colony.getRemainingShrinkage();
             shrinkage += colony.getRemainingShrinkage()- colony.getRemainingGrowth();
@@ -311,7 +311,7 @@ public class CoralAnimation extends Canvas {
             notes.append("Colony ").append(colonyNumber).append(" ").append(s).append(" (Competing:").append(competing).append(") ").
                 append(growing?"grew":"shrank").append(" by ").
                 append(growing?growth:shrinkage).append( "cm").append(LINE_SEP);
-
+            newColony.setRadiusDelta(growth);
             newColony.getCells().addAll(cells);
             HashSet<Integer> allOtherCells = new HashSet<Integer>();
             for (Entry<Integer, Colony> col : colonies.entrySet()) {
@@ -343,7 +343,7 @@ public class CoralAnimation extends Canvas {
                     toKill.add(colonyNumber);
                 } else {
                     // Leftover shrinkage is maintained for next iteration
-                    System.out.println("Shrinkage "+shrinkage );
+                 //   System.out.println("Shrinkage "+shrinkage );
                     newColony.setRemainingShrinkage((shrinkage-(long) shrinkage));
                     for(int i = 1; i < shrinkage ; i++){
                         ArrayList<Integer> toRemove = new ArrayList<Integer>();  
@@ -590,7 +590,13 @@ public class CoralAnimation extends Canvas {
     public String getCSVReport() {
         StringBuilder sb = new StringBuilder(64);
         for (Entry<Integer, Colony> p: colonies.entrySet()) {
-            sb.append(tick).append(",").append(p.getKey()).append(",").append(p.getValue().getCells().size()+p.getValue().getRemainingGrowth()-p.getValue().getRemainingShrinkage()).append(",\"").append(p.getValue().getSpecies()).append("\"").append(LINE_SEP);
+            sb.append(tick).append(",").
+                    append(p.getKey()).append(",").
+                    append(String.format("%.4f",p.getValue().getCells().size()+
+                            p.getValue().getRemainingGrowth()-p.getValue().getRemainingShrinkage())).
+                    append(",\"").
+                    append(p.getValue().getSpecies()).
+                    append("\",").append(String.format("%.3f", p.getValue().getRadiusDelta())).append(LINE_SEP);
         }
         return sb.toString();
     }

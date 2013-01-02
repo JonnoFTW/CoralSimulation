@@ -9,6 +9,7 @@ public class Colony {
     private HashSet<Integer> cells = new HashSet<Integer>();
     final private Species species;
     private  double remainingGrowth, remainingShrinkage;
+    private double radiusDelta;
     /**
      * Resets remaining growth and shrinkage to 0
      */
@@ -72,5 +73,16 @@ public class Colony {
      */
     public void setRemainingGrowth(double gr) {
         remainingGrowth = gr;
+    }
+    /**
+     * 
+     * @return the most recent change in this colony's radius in cm
+     */
+    public double getRadiusDelta() {
+        // TODO Auto-generated method stub
+        return radiusDelta;
+    }
+    public void setRadiusDelta(double d) {
+        radiusDelta = d;
     }
 }

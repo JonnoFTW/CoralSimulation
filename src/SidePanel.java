@@ -474,7 +474,7 @@ public class SidePanel extends JPanel {
                 outFile.write("Running Simulation at "+(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(now))+LINE_SEP);
                 outFile.write(speciesReport.toString());
                 outFile.write(sizeClassReport.toString());
-                csvFile.write("Tick,ColonyNo,Size,Species"+LINE_SEP);
+                csvFile.write("Tick,ColonyNo,Size,Species,RadiusChange"+LINE_SEP);
                 // These exceptions are required
             } catch (IOException e) {
                 e.printStackTrace();   

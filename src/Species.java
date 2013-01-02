@@ -66,11 +66,11 @@ public class Species implements Serializable {
         this.shrinkSD = shrinkSD;
         this.name = name;
         this.sizeClasses = sizeClasses;
-        this.growTS = growTS / 12d;
+        this.growTS = 12d/ growTS;
         this.growMonths = growTS;
         // Set the months for exporting
         this.shrinkMonths = shrinkTS;
-        this.shrinkTS = shrinkTS / 12d;
+        this.shrinkTS = 12d/shrinkTS;
         this.recruits = recruits;
     }
 
@@ -79,27 +79,29 @@ public class Species implements Serializable {
     }
 
     /**
-     * @return
+     * @return the number of new recruits of this species
+     * to the simulation at every iteration
      */
     public int getRecruits() {
         return recruits;
     }
 
     /**
-     * @param c
+     * @param c the color that species will be displayed as in the animation
      */
     private void setColor(Color c) {
         this.color = c;
     }
 
     /**
-     * @return
+     * @return return a pipe separated string of this species information
      */
     public String getReport(int maxNameSize) {
         return String.format("%" + (maxNameSize)
-                + "s | %f + %f | %f + %f | %f + %f | %f + %f | %d %n", name,
+                + "s | %f + %f | %f + %f | %f + %f | %f + %f | %d %n%"+(maxNameSize)+"s | %f | %f%n", name,
                 grow, growSD, growC, growCSD, shrink, shrinkSD, shrinkC,
-                shrinkCSD, recruits);
+                shrinkCSD, recruits,
+                "TS",this.growTS, this.shrinkTS);
     }
 
     /**
