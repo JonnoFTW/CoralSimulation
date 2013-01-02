@@ -67,6 +67,8 @@ public class SidePanel extends JPanel {
     private JCheckBox chckbxForceCompetition;
     private JCheckBox chckbxDisableGrowth;
     private JCheckBox chckbxDisableShrinkage;
+    private JRadioButton rdbtnNeighbourCells8;
+    private final ButtonGroup buttonGroupNeighbourCells = new ButtonGroup();
     public SidePanel(final Simulation s) {
         setToolTipText("");
         this.s = s;
@@ -267,6 +269,18 @@ public class SidePanel extends JPanel {
         chckbxForceCompetition = new JCheckBox("Force Competition");
         chckbxForceCompetition.setToolTipText("the species will always act as though they are in competition");
         add(chckbxForceCompetition, "cell 2 4");
+        
+        JRadioButton rdbtnNeighbourCells4 = new JRadioButton("4 Neighbour Cells");
+        rdbtnNeighbourCells4.setToolTipText("Cells have 4 neighbours");
+        buttonGroupNeighbourCells.add(rdbtnNeighbourCells4);
+        add(rdbtnNeighbourCells4, "cell 2 4");
+        
+        rdbtnNeighbourCells8 = new JRadioButton("8 Neighbour Cells");
+        rdbtnNeighbourCells8.setToolTipText("Cells have 8 neighbours");
+        buttonGroupNeighbourCells.add(rdbtnNeighbourCells8);
+        
+        rdbtnNeighbourCells4.setSelected(true);
+        add(rdbtnNeighbourCells8, "cell 2 4");
         chckbxShowColNo.addActionListener(new ActionListener() {
             
             @Override
@@ -309,6 +323,9 @@ public class SidePanel extends JPanel {
     }
     public boolean isGrowthDisabled() {
         return chckbxDisableGrowth.isSelected();
+    }
+    public boolean isFourCellNeighbours() {
+        return !rdbtnNeighbourCells8.isSelected();
     }
     /**
      * I'm not sure if this even used

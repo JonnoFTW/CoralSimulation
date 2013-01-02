@@ -350,12 +350,13 @@ public class CoralAnimation extends Canvas {
                         for(Integer c : newColony.getCells()) {
                             int comp = 0;
                             // Detect if the cell is a border cell since they die first
-                            for(int n : getNeighbours(c)) {
+                            int[] neighbours = getNeighbours(c);
+                            for(int n : neighbours) {
                                 if(/*allOtherCells.contains(n) ||*/ newColony.getCells().contains(n)) {
                                     comp++;
                                 }
                             }
-                            if(comp < 4 &&  !toRemove.contains(c)) {
+                            if(comp < neighbours.length &&  !toRemove.contains(c)) {
                                 toRemove.add(c);
                                // System.out.println("\tRemoving "+toXY(c));
                             }
@@ -543,18 +544,26 @@ public class CoralAnimation extends Canvas {
         int im = (((x-1)%columns)+columns)%columns;
         int jp = (((y+1)%rows)+rows)%rows;
         int jm = (((y-1)%rows)+rows)%rows;
-        
-        int[] neighbours = {
-            im*columns + y,
-            ip*columns + y,
-            x*columns + jp,
-            x*columns + jm,
-         //   ip*columns +jp,
-         //   ip*columns +jm,
-          //  im*columns +jp,
-         //   im*columns +jm
-        };
-        return neighbours;
+        if(!sim.sp.isFourCellNeighbours()) {
+            return new int[]{
+                im*columns + y, // The 4 surrounding cells up, down, left, right
+                ip*columns + y,
+                x*columns + jp,
+                x*columns + jm,
+                ip*columns +jp, // The 4 diagonals
+                ip*columns +jm,
+                im*columns +jp,
+                im*columns +jm
+            };
+        }
+        else {
+            return new int[]{
+                im*columns + y,
+                ip*columns + y,
+                x*columns + jp,
+                x*columns + jm
+            };  
+        }
     }
     /**
      * Convert a cell index into it's equivalent x,y coordinates
