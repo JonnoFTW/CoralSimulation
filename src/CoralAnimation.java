@@ -310,8 +310,8 @@ public class CoralAnimation extends Canvas {
             
             notes.append("Colony ").append(colonyNumber).append(" ").append(s).append(" (Competing:").append(competing).append(") ").
                 append(growing?"grew":"shrank").append(" by ").
-                append(growing?growth:shrinkage).append( "cm").append(LINE_SEP);
-            newColony.setRadiusDelta(growth);
+                append((int)(growing?growth:shrinkage)).append( "cm").append(LINE_SEP);
+            newColony.setRadiusDelta((int)growth);
             newColony.getCells().addAll(cells);
             HashSet<Integer> allOtherCells = new HashSet<Integer>();
             for (Entry<Integer, Colony> col : colonies.entrySet()) {
@@ -588,7 +588,7 @@ public class CoralAnimation extends Canvas {
                 append(p.getKey()).append(", ").
                 append(p.getValue().getSpecies()).
                 append(", size: ").
-                append(p.getValue().getCells().size()+p.getValue().getRemainingGrowth()-p.getValue().getRemainingShrinkage()).
+                append(p.getValue().getCells().size()).
                 append(LINE_SEP);
         }
         s.append(notes);
@@ -601,11 +601,10 @@ public class CoralAnimation extends Canvas {
         for (Entry<Integer, Colony> p: colonies.entrySet()) {
             sb.append(tick).append(",").
                     append(p.getKey()).append(",").
-                    append(String.format("%.4f",p.getValue().getCells().size()+
-                            p.getValue().getRemainingGrowth()-p.getValue().getRemainingShrinkage())).
+                    append(p.getValue().getCells().size()).
                     append(",\"").
                     append(p.getValue().getSpecies()).
-                    append("\",").append(String.format("%.3f", p.getValue().getRadiusDelta())).append(LINE_SEP);
+                    append("\",").append(p.getValue().getRadiusDelta()).append(LINE_SEP);
         }
         return sb.toString();
     }

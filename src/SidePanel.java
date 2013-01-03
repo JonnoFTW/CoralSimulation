@@ -390,7 +390,7 @@ public class SidePanel extends JPanel {
             int size = c.getCells().size();
             lblColonyval.setText(colonyId+"");
             lblSpeciesVal.setText(s.toString());
-            lblSizeval.setText("<html>"+(size+c.getRemainingGrowth())+"cm<sup>2</sup></html>");
+            lblSizeval.setText("<html>"+size+"cm<sup>2</sup></html>");
             lblGrowprobval.setText(s.getGrowShrinkP(size)+"");
             lblGrowprobcval.setText(s.getGrowShrinkPC(size)+"");
         }
